@@ -19,15 +19,15 @@
     </context-param>
     <context-param>
         <param-name>basededatos</param-name>
-        <param-value>Tampa</param-value>
+        <param-value>GestionRH</param-value>
     </context-param>
     <context-param>
         <param-name>usuariobd</param-name>
-        <param-value>usringenio</param-value>
+        <param-value>usrgrh</param-value>
     </context-param>
     <context-param>
         <param-name>clavebd</param-name>
-        <param-value>usringenio</param-value>
+        <param-value>usrgrh</param-value>
     </context-param>
     <context-param>
         <param-name>conexionesiniciales</param-name>

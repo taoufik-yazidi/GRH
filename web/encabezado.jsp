@@ -20,8 +20,10 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Parámetros<b class="caret"></b></a>
                 <ul class="dropdown-menu">
                     <li><a href="tiposdedocumentos.jsp">Tipos de Documentos</a></li>
-                    <li><a href="clientes.jsp">Clientes</a></li>
-                    <li><a href="#">Something else here</a></li>
+                    <li><a href="departamentos.jsp">Departamentos</a></li>
+                    <li><a href="municipios.jsp">Municipios</a></li>
+                    <li><a href="genero.jsp">Géneros</a></li>
+                    <li><a href="estadocivil.jsp">Estado Civil</a></li>
                     <li class="divider"></li>
                     <li><a href="#">Separated link</a></li>
                     <li class="divider"></li>

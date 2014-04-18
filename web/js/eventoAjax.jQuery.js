@@ -51,9 +51,6 @@ $.fn.eventoAjax = function(btnGuardar, btnCancelar, msgNormal, frmLista, msgList
                             _nombreColumna = i;
                             _contador++;
                         }
-                        //console.log("Entre a valor: "+i);
-                        //console.log(typeof valor[i]);
-                        //console.log("\n");
                         miHtml += "<td>";
                         if(valor[i] === true || valor[i] === false){
                             miHtml += "<input class=\"form-control\" type=\"checkbox\" disabled=\"disabled\"";
@@ -219,9 +216,8 @@ $.fn.eventoAjax = function(btnGuardar, btnCancelar, msgNormal, frmLista, msgList
                 break;
             case 3: // Eliminar
                 var _datos = {accion: 3, idunico:_idunico};
+                console.log(_datos);
                 enviarDatos(_datos);
-                //$(tabla).html("");
-                //cargarLista();
                 $registro.remove();
                 break;
             default:
