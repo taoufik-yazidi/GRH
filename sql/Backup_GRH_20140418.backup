@@ -1,0 +1,5360 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.2.3
+-- Dumped by pg_dump version 9.2.3
+-- Started on 2014-04-18 19:57:35
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- TOC entry 2180 (class 1262 OID 73941)
+-- Dependencies: 2179
+-- Name: GestionRH; Type: COMMENT; Schema: -; Owner: usrgrh
+--
+
+COMMENT ON DATABASE "GestionRH" IS 'Base de datos del proceso de Gestión del recurso humano';
+
+
+--
+-- TOC entry 197 (class 3079 OID 11727)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2183 (class 0 OID 0)
+-- Dependencies: 197
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 597 (class 1247 OID 73944)
+-- Name: t_clientes; Type: TYPE; Schema: public; Owner: usrgrh
+--
+
+CREATE TYPE t_clientes AS (
+	idcliente smallint,
+	idtipodedocumento smallint,
+	abreviatura character varying,
+	tipodocumento character varying,
+	numerodocumento character varying,
+	direccion character varying,
+	telefono character varying,
+	correoelectronico character varying,
+	responsable character varying,
+	consejo character varying
+);
+
+
+ALTER TYPE public.t_clientes OWNER TO usrgrh;
+
+--
+-- TOC entry 660 (class 1247 OID 74261)
+-- Name: t_hojadevida; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE t_hojadevida AS (
+	idhojadevida integer,
+	idtipodedocumento smallint,
+	tipodedocumento character varying(25),
+	numerodocumento character varying(12),
+	primerapellido character varying(50),
+	segundoapellido character varying(50),
+	nombres character varying(100),
+	idgenero smallint,
+	genero character varying(10),
+	libretamilitar character varying(15),
+	distritolm character varying(4),
+	idlugarnacimiento smallint,
+	lugardenacimiento character varying(40),
+	lugarexpediciond smallint,
+	lugardeexpedicion character varying(40),
+	idlugarresidencia smallint,
+	lugarderesidencia character varying(40),
+	fechanacimiento date,
+	idestadocivil smallint,
+	estadocivil character varying(15),
+	disponibilidadviaje boolean,
+	direccion character varying(100),
+	telefono character varying(25),
+	correo character varying(100),
+	foto character varying(250)
+);
+
+
+ALTER TYPE public.t_hojadevida OWNER TO postgres;
+
+--
+-- TOC entry 657 (class 1247 OID 74246)
+-- Name: t_municipio; Type: TYPE; Schema: public; Owner: usrgrh
+--
+
+CREATE TYPE t_municipio AS (
+	iddepartamento smallint,
+	codigodepto character varying(2),
+	departamento character varying(20),
+	idmunicipio smallint,
+	codigo character varying(3),
+	municipio character varying(40)
+);
+
+
+ALTER TYPE public.t_municipio OWNER TO usrgrh;
+
+--
+-- TOC entry 600 (class 1247 OID 73947)
+-- Name: t_usuarios; Type: TYPE; Schema: public; Owner: usrgrh
+--
+
+CREATE TYPE t_usuarios AS (
+	idusuario integer,
+	codigo character varying(25),
+	nombres character varying(50),
+	apellidos character varying(50),
+	correo character varying(100),
+	identificacion character varying(12),
+	idperfil smallint,
+	perfil character varying(25),
+	perfilactivo boolean,
+	cambiarclave boolean,
+	fechacreacion timestamp without time zone,
+	ultimoingreso timestamp without time zone,
+	bloqueado boolean,
+	fechabloqueado timestamp without time zone,
+	fechadesbloqueado timestamp without time zone
+);
+
+
+ALTER TYPE public.t_usuarios OWNER TO usrgrh;
+
+--
+-- TOC entry 210 (class 1255 OID 73948)
+-- Name: fn_clientes_del(smallint); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_clientes_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idcliente alias for $1; -- Id de la tabla
+BEGIN
+	delete from clientes where idcliente = _idcliente;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_clientes_del(smallint) OWNER TO usrgrh;
+
+--
+-- TOC entry 2184 (class 0 OID 0)
+-- Dependencies: 210
+-- Name: FUNCTION fn_clientes_del(smallint); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_clientes_del(smallint) IS 'Funcion que permite actualizar clientes';
+
+
+--
+-- TOC entry 211 (class 1255 OID 73949)
+-- Name: fn_clientes_ins(smallint, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_clientes_ins(smallint, character varying, character varying, character varying, character varying, character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipodocumento alias for $1;
+	_numerodocumento alias for $2;
+	_direccion alias for $3;
+	_telefono alias for $4;
+	_correoelectronico alias for $5;
+	_responsable alias for $6;
+	_consejo alias for $7;
+begin
+	insert into clientes values (default, _tipodocumento, _numerodocumento, _direccion, _telefono, _correoelectronico, _responsable, _consejo);
+	if found then
+		return currval('sqc_clientes'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_clientes_ins(smallint, character varying, character varying, character varying, character varying, character varying, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2185 (class 0 OID 0)
+-- Dependencies: 211
+-- Name: FUNCTION fn_clientes_ins(smallint, character varying, character varying, character varying, character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_clientes_ins(smallint, character varying, character varying, character varying, character varying, character varying, character varying) IS 'Funcion que permite insertar clientes';
+
+
+--
+-- TOC entry 170 (class 1259 OID 73950)
+-- Name: sqc_clientes; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_clientes
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_clientes OWNER TO usrgrh;
+
+--
+-- TOC entry 2186 (class 0 OID 0)
+-- Dependencies: 170
+-- Name: SEQUENCE sqc_clientes; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_clientes IS 'Identificador unico del cliente';
+
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 171 (class 1259 OID 73952)
+-- Name: clientes; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE clientes (
+    idcliente smallint DEFAULT nextval('sqc_clientes'::regclass) NOT NULL,
+    tipodocumento smallint NOT NULL,
+    numerodocumento character varying(12) NOT NULL,
+    direccion character varying(100) NOT NULL,
+    telefono character varying(20) NOT NULL,
+    correoelectronico character varying(100) NOT NULL,
+    responsable character varying(100) NOT NULL,
+    consejo character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.clientes OWNER TO usrgrh;
+
+--
+-- TOC entry 2187 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: TABLE clientes; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE clientes IS 'Identificación de los clientes. En general es uno solo, pero pueden existir varios en una misma unidad.';
+
+
+--
+-- TOC entry 2188 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.idcliente; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.idcliente IS 'Id unico del cliente.';
+
+
+--
+-- TOC entry 2189 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.tipodocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.tipodocumento IS 'Tipo de documento';
+
+
+--
+-- TOC entry 2190 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.numerodocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.numerodocumento IS 'Numero de documento del cliente';
+
+
+--
+-- TOC entry 2191 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.direccion; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.direccion IS 'Direccion principal del cliente';
+
+
+--
+-- TOC entry 2192 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.telefono; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.telefono IS 'Telefono principal del cliente';
+
+
+--
+-- TOC entry 2193 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.correoelectronico; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.correoelectronico IS 'correo electronico principal del cliente';
+
+
+--
+-- TOC entry 2194 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.responsable; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.responsable IS 'Nombre del responsable';
+
+
+--
+-- TOC entry 2195 (class 0 OID 0)
+-- Dependencies: 171
+-- Name: COLUMN clientes.consejo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN clientes.consejo IS 'Consejo de administración';
+
+
+--
+-- TOC entry 212 (class 1255 OID 73956)
+-- Name: fn_clientes_sel(smallint, smallint, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_clientes_sel(smallint, smallint, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF clientes
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_idcliente alias for $2; -- Id de la tabla
+	pagina alias for $3;
+	limite alias for $4;
+	colind alias for $5;
+	coldir alias for $6;
+	inicio integer;
+	 consulta TEXT = 'select idcliente, tipodocumento, numerodocumento, direccion, telefono, correoelectronico, responsable, consejo from clientes';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 0 then -- Consulta todos los registros
+		consulta = consulta;
+	elsif _tipo = 1 then -- Consulta por el id de la tabla
+		consulta = consulta || ' where idcliente = ' || _idcliente;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir || ' limit ' || limite || ' offset ' || inicio;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_clientes_sel(smallint, smallint, integer, integer, integer, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2196 (class 0 OID 0)
+-- Dependencies: 212
+-- Name: FUNCTION fn_clientes_sel(smallint, smallint, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_clientes_sel(smallint, smallint, integer, integer, integer, character varying) IS 'Funcion que permite consultar clientes';
+
+
+--
+-- TOC entry 213 (class 1255 OID 73957)
+-- Name: fn_clientes_upd(smallint, smallint, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_clientes_upd(smallint, smallint, character varying, character varying, character varying, character varying, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idcliente alias for $1;
+	_tipodocumento alias for $2;
+	_numerodocumento alias for $3;
+	_direccion alias for $4;
+	_telefono alias for $5;
+	_correoelectronico alias for $6;
+	_responsable alias for $7;
+	_consejo alias for $8;
+BEGIN
+	update clientes set tipodocumento = _tipodocumento, numerodocumento = _numerodocumento, direccion = _direccion, telefono = _telefono, correoelectronico = _correoelectronico, responsable = _responsable, consejo = _consejo where idcliente = _idcliente;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_clientes_upd(smallint, smallint, character varying, character varying, character varying, character varying, character varying, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2197 (class 0 OID 0)
+-- Dependencies: 213
+-- Name: FUNCTION fn_clientes_upd(smallint, smallint, character varying, character varying, character varying, character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_clientes_upd(smallint, smallint, character varying, character varying, character varying, character varying, character varying, character varying) IS 'Funcion que permite actualizar clientes';
+
+
+--
+-- TOC entry 214 (class 1255 OID 73958)
+-- Name: fn_configuracion_del(smallint); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_configuracion_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	idconf alias for $1;
+BEGIN
+	delete from configuracion where idconfiguracion = idconf;
+	if found then
+		return 1; -- Se borro correctamente
+	else
+		return 0; -- Error de la base de datos
+	end if;
+END;
+$_$;
+
+
+ALTER FUNCTION public.fn_configuracion_del(smallint) OWNER TO usrgrh;
+
+--
+-- TOC entry 2198 (class 0 OID 0)
+-- Dependencies: 214
+-- Name: FUNCTION fn_configuracion_del(smallint); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_configuracion_del(smallint) IS 'Funcion que permite borrar parametros en la tabla configuracion';
+
+
+--
+-- TOC entry 215 (class 1255 OID 73959)
+-- Name: fn_configuracion_ins(character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_configuracion_ins(character varying, character varying, boolean DEFAULT true) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	param alias for $1;
+	valor alias for $2;
+	activ alias for $3;
+BEGIN
+	insert into configuracion values (default, param, valor, activ);
+	if found then
+		return currval('sqc_configuracion'); -- Se ingreso correctamente el parametro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+END;
+$_$;
+
+
+ALTER FUNCTION public.fn_configuracion_ins(character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2199 (class 0 OID 0)
+-- Dependencies: 215
+-- Name: FUNCTION fn_configuracion_ins(character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_configuracion_ins(character varying, character varying, boolean) IS 'Funcion que permite insertar parametros en la tabla configuracion';
+
+
+--
+-- TOC entry 172 (class 1259 OID 73960)
+-- Name: sqc_configuracion; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_configuracion
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_configuracion OWNER TO usrgrh;
+
+--
+-- TOC entry 2200 (class 0 OID 0)
+-- Dependencies: 172
+-- Name: SEQUENCE sqc_configuracion; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_configuracion IS 'Secuencia para el consecutivo de la tabla configuracion';
+
+
+--
+-- TOC entry 173 (class 1259 OID 73962)
+-- Name: configuracion; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE configuracion (
+    idconfiguracion smallint DEFAULT nextval('sqc_configuracion'::regclass) NOT NULL,
+    parametro character varying(50) NOT NULL,
+    valorparametro character varying(50) NOT NULL,
+    activo boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.configuracion OWNER TO usrgrh;
+
+--
+-- TOC entry 2201 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: TABLE configuracion; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE configuracion IS 'Tabla que contiene la configuracion general del sistema';
+
+
+--
+-- TOC entry 2202 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: COLUMN configuracion.idconfiguracion; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN configuracion.idconfiguracion IS 'Consecutivo de configuracion';
+
+
+--
+-- TOC entry 2203 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: COLUMN configuracion.parametro; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN configuracion.parametro IS 'Nombre del parametro de configuracion';
+
+
+--
+-- TOC entry 2204 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: COLUMN configuracion.valorparametro; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN configuracion.valorparametro IS 'Valor del parametro de configuracion';
+
+
+--
+-- TOC entry 2205 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: COLUMN configuracion.activo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN configuracion.activo IS 'Identifica si el parametro esta activo o no';
+
+
+--
+-- TOC entry 216 (class 1255 OID 73967)
+-- Name: fn_configuracion_sel(smallint, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_configuracion_sel(smallint DEFAULT (-1), character varying DEFAULT 'NINGUNO'::character varying, boolean DEFAULT true) RETURNS SETOF configuracion
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tipo alias for $1;
+	para alias for $2;
+	acti alias for $3;
+begin
+	if tipo = 0 then -- Consulta todos los parametros
+		return query select idconfiguracion, parametro, valorparametro, activo from configuracion;
+	elsif tipo = 1 then -- Consulta de un parametro especifico
+		return query select idconfiguracion, parametro, valorparametro, activo from configuracion where parametro = upper(para);
+	end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_configuracion_sel(smallint, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2206 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: FUNCTION fn_configuracion_sel(smallint, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_configuracion_sel(smallint, character varying, boolean) IS 'Funcion que consulta los registros de la tabla configuracion';
+
+
+--
+-- TOC entry 217 (class 1255 OID 73968)
+-- Name: fn_configuracion_upd(smallint, character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_configuracion_upd(smallint, character varying, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	idconf alias for $1;
+	parame alias for $2;
+	valorp alias for $3;
+	activa alias for $4;
+BEGIN
+	update configuracion set parametro = upper(parame), valorparametro = upper(valorp), activo = activa where idconfiguracion = idconf;
+	if found then
+		return 1; -- Se actualizó correctamente
+	else
+		return 0; -- Error de la base de datos
+	end if;
+END;
+$_$;
+
+
+ALTER FUNCTION public.fn_configuracion_upd(smallint, character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2207 (class 0 OID 0)
+-- Dependencies: 217
+-- Name: FUNCTION fn_configuracion_upd(smallint, character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_configuracion_upd(smallint, character varying, character varying, boolean) IS 'Funcion que permite actualizar parametros en la tabla configuracion';
+
+
+--
+-- TOC entry 218 (class 1255 OID 73969)
+-- Name: fn_contar_registros(character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_contar_registros(character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tabla alias for $1;
+	consulta TEXT = 'select count(*) from ' || tabla;
+	resultado integer;
+begin
+	execute consulta into resultado;
+	return resultado;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_contar_registros(character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2208 (class 0 OID 0)
+-- Dependencies: 218
+-- Name: FUNCTION fn_contar_registros(character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_contar_registros(character varying) IS 'Funcion que permite consultar la cantidad de registros de determinada tabla';
+
+
+--
+-- TOC entry 219 (class 1255 OID 73970)
+-- Name: fn_credenciales_del(integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_del(integer) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idc alias for $1;
+begin
+  delete from credenciales where cre_id=idc;
+  perform fn_credenciales_delall();
+  return 1;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_credenciales_del(integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2209 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: FUNCTION fn_credenciales_del(integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_del(integer) IS 'Funcion que borra la credencial del usuario actual y llama la funcion de borrado de las credenciales que excedieron el tiempo de inactividad';
+
+
+--
+-- TOC entry 220 (class 1255 OID 73971)
+-- Name: fn_credenciales_delall(); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_delall() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+begin
+  delete from credenciales where (extract(epoch from now()-cre_ultimaaccion)/60)::integer > (select valorparametro::integer from configuracion where parametro = 'TIEMPOCREDENCIAL' limit 1);
+end;
+$$;
+
+
+ALTER FUNCTION public.fn_credenciales_delall() OWNER TO usrgrh;
+
+--
+-- TOC entry 2210 (class 0 OID 0)
+-- Dependencies: 220
+-- Name: FUNCTION fn_credenciales_delall(); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_delall() IS 'Funcion que borra las credenciales que excedieron el tiempo limite de inactividad';
+
+
+--
+-- TOC entry 221 (class 1255 OID 73972)
+-- Name: fn_credenciales_ins(integer, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_ins(integer, character varying, character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idu alias for $1;
+  nom alias for $2;
+  hip alias for $3;
+  hno alias for $4;
+begin
+  insert into credenciales values (default, idu, nom, hip, hno, default, default);
+  if found then
+    return currval('sqc_credencial'); -- Se ingreso correctamente la credencial
+  else
+    return 0; -- Error de la base de datos
+  end if;
+exception
+  when foreign_key_violation then
+    return -1; -- No se puede ingresar un usuario que no existe
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_credenciales_ins(integer, character varying, character varying, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2211 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: FUNCTION fn_credenciales_ins(integer, character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_ins(integer, character varying, character varying, character varying) IS 'Funcion que permite ingresar registros a la tabla credenciales';
+
+
+--
+-- TOC entry 174 (class 1259 OID 73973)
+-- Name: sqc_credencial; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_credencial
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    CYCLE;
+
+
+ALTER TABLE public.sqc_credencial OWNER TO usrgrh;
+
+--
+-- TOC entry 2212 (class 0 OID 0)
+-- Dependencies: 174
+-- Name: SEQUENCE sqc_credencial; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_credencial IS 'Secuencia de las credenciales';
+
+
+--
+-- TOC entry 175 (class 1259 OID 73975)
+-- Name: credenciales; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE credenciales (
+    cre_id integer DEFAULT nextval('sqc_credencial'::regclass) NOT NULL,
+    cre_idusuario integer NOT NULL,
+    cre_nombre character varying(110) NOT NULL,
+    cre_hostip character varying(50) NOT NULL,
+    cre_hostnombre character varying(50) NOT NULL,
+    cre_creacion timestamp without time zone DEFAULT now() NOT NULL,
+    cre_ultimaaccion timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.credenciales OWNER TO usrgrh;
+
+--
+-- TOC entry 2213 (class 0 OID 0)
+-- Dependencies: 175
+-- Name: TABLE credenciales; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE credenciales IS 'Tabla que contendra temporalemente las credenciales de los usuarios que ingresan correctamente';
+
+
+--
+-- TOC entry 222 (class 1255 OID 73981)
+-- Name: fn_credenciales_sel(smallint, integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_sel(smallint, integer) RETURNS SETOF credenciales
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  tip alias for $1;
+  idc alias for $2;
+begin
+  if tip=0 then -- Consulta por id de credencial
+    return query select * from credenciales where cre_id=idc;
+  elsif tip=1 then -- Consulta de todas las credenciales
+    return query select * from credenciales;
+  end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_credenciales_sel(smallint, integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2214 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: FUNCTION fn_credenciales_sel(smallint, integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_sel(smallint, integer) IS 'Funcion que consulta o selecciona las credenciales';
+
+
+--
+-- TOC entry 223 (class 1255 OID 73982)
+-- Name: fn_credenciales_upd(integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_upd(integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idc alias for $1;
+begin
+  update credenciales set cre_ultimaaccion=now() where cre_id=idc;
+  if found then
+    return 1; -- Actualizacion correcta
+  else
+    return 2; -- No existe la credencial a actualizar
+  end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_credenciales_upd(integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2215 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: FUNCTION fn_credenciales_upd(integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_upd(integer) IS 'Funcion que permite actualizar la fecha y hora de la ultima accion realizada desde el aplicativo';
+
+
+--
+-- TOC entry 224 (class 1255 OID 73983)
+-- Name: fn_credenciales_val(integer, integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_credenciales_val(integer, integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idc alias for $1;
+  idu alias for $2;
+  can int;
+begin
+  select count(*) into can from credenciales 
+      where cre_id=idc and cre_idusuario=idu 
+      and (select extract(epoch from (now()-cre_ultimaaccion))/60)<=(select valorparametro::integer from configuracion where parametro = 'TIEMPOCREDENCIAL' limit 1);
+  return can;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_credenciales_val(integer, integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2216 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: FUNCTION fn_credenciales_val(integer, integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_credenciales_val(integer, integer) IS 'Funcion que valida si la credencial existe o no';
+
+
+--
+-- TOC entry 252 (class 1255 OID 74233)
+-- Name: fn_departamentos_del(smallint); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_departamentos_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_iddepartamento alias for $1; -- Id de la tabla
+BEGIN
+	delete from departamentos where iddepartamento = _iddepartamento;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_departamentos_del(smallint) OWNER TO usringenio;
+
+--
+-- TOC entry 2217 (class 0 OID 0)
+-- Dependencies: 252
+-- Name: FUNCTION fn_departamentos_del(smallint); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_departamentos_del(smallint) IS 'Funcion que permite actualizar departamentos';
+
+
+--
+-- TOC entry 247 (class 1255 OID 74230)
+-- Name: fn_departamentos_ins(character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_departamentos_ins(character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_codigo alias for $1;
+	_nombre alias for $2;
+begin
+	insert into departamentos values (default, _codigo, _nombre);
+	if found then
+		return currval('sqc_departamentos'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_departamentos_ins(character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2218 (class 0 OID 0)
+-- Dependencies: 247
+-- Name: FUNCTION fn_departamentos_ins(character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_departamentos_ins(character varying, character varying) IS 'Funcion que permite insertar departamentos';
+
+
+--
+-- TOC entry 189 (class 1259 OID 74112)
+-- Name: sqc_departamentos; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_departamentos
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_departamentos OWNER TO usrgrh;
+
+--
+-- TOC entry 2219 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: SEQUENCE sqc_departamentos; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_departamentos IS 'Secuencia de departamentos';
+
+
+--
+-- TOC entry 190 (class 1259 OID 74114)
+-- Name: departamentos; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE departamentos (
+    iddepartamento smallint DEFAULT nextval('sqc_departamentos'::regclass) NOT NULL,
+    codigo character varying(2) NOT NULL,
+    nombre character varying(20) NOT NULL
+);
+
+
+ALTER TABLE public.departamentos OWNER TO usrgrh;
+
+--
+-- TOC entry 2220 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: TABLE departamentos; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE departamentos IS 'Departamentos de Colombia';
+
+
+--
+-- TOC entry 2221 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: COLUMN departamentos.iddepartamento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN departamentos.iddepartamento IS 'Identificador único del departamento';
+
+
+--
+-- TOC entry 2222 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: COLUMN departamentos.codigo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN departamentos.codigo IS 'Código del departamento asignado por el Dane';
+
+
+--
+-- TOC entry 2223 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: COLUMN departamentos.nombre; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN departamentos.nombre IS 'Nombre del Departamento';
+
+
+--
+-- TOC entry 254 (class 1255 OID 74231)
+-- Name: fn_departamentos_sel(smallint, smallint, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_departamentos_sel(smallint, smallint, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF departamentos
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_iddepartamento alias for $2; -- Id de la tabla
+	pagina alias for $3;
+	limite alias for $4;
+	colind alias for $5;
+	coldir alias for $6;
+	inicio integer;
+	 consulta TEXT = 'select iddepartamento, codigo, nombre from departamentos';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 0 then -- Consulta todos los registros
+		consulta = consulta;
+	elsif _tipo = 1 then -- Consulta por el id de la tabla
+		consulta = consulta || ' where iddepartamento = ' || _iddepartamento;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir;
+	if limite > 0 then
+		consulta = consulta || ' limit ' || limite || ' offset ' || inicio;
+	end if;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_departamentos_sel(smallint, smallint, integer, integer, integer, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2224 (class 0 OID 0)
+-- Dependencies: 254
+-- Name: FUNCTION fn_departamentos_sel(smallint, smallint, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_departamentos_sel(smallint, smallint, integer, integer, integer, character varying) IS 'Funcion que permite consultar departamentos';
+
+
+--
+-- TOC entry 251 (class 1255 OID 74232)
+-- Name: fn_departamentos_upd(smallint, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_departamentos_upd(smallint, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_iddepartamento alias for $1;
+	_codigo alias for $2;
+	_nombre alias for $3;
+BEGIN
+	update departamentos set codigo = _codigo, nombre = _nombre where iddepartamento = _iddepartamento;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_departamentos_upd(smallint, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2225 (class 0 OID 0)
+-- Dependencies: 251
+-- Name: FUNCTION fn_departamentos_upd(smallint, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_departamentos_upd(smallint, character varying, character varying) IS 'Funcion que permite actualizar departamentos';
+
+
+--
+-- TOC entry 256 (class 1255 OID 74255)
+-- Name: fn_estadocivil_del(smallint); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_estadocivil_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idestadocivil alias for $1; -- Id de la tabla
+BEGIN
+	delete from estadocivil where idestadocivil = _idestadocivil;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_estadocivil_del(smallint) OWNER TO usringenio;
+
+--
+-- TOC entry 2226 (class 0 OID 0)
+-- Dependencies: 256
+-- Name: FUNCTION fn_estadocivil_del(smallint); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_estadocivil_del(smallint) IS 'Funcion que permite actualizar estadocivil';
+
+
+--
+-- TOC entry 262 (class 1255 OID 74252)
+-- Name: fn_estadocivil_ins(character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_estadocivil_ins(character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_abreviatura alias for $1;
+	_nombre alias for $2;
+begin
+	insert into estadocivil values (default, _abreviatura, _nombre);
+	if found then
+		return currval('sqc_estadocivil'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_estadocivil_ins(character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2227 (class 0 OID 0)
+-- Dependencies: 262
+-- Name: FUNCTION fn_estadocivil_ins(character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_estadocivil_ins(character varying, character varying) IS 'Funcion que permite insertar estadocivil';
+
+
+--
+-- TOC entry 192 (class 1259 OID 74137)
+-- Name: sqc_estadocivil; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_estadocivil
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_estadocivil OWNER TO usrgrh;
+
+--
+-- TOC entry 2228 (class 0 OID 0)
+-- Dependencies: 192
+-- Name: SEQUENCE sqc_estadocivil; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_estadocivil IS 'Estados civiles';
+
+
+--
+-- TOC entry 193 (class 1259 OID 74139)
+-- Name: estadocivil; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE estadocivil (
+    idestadocivil smallint DEFAULT nextval('sqc_estadocivil'::regclass) NOT NULL,
+    abreviatura character varying(1) NOT NULL,
+    nombre character varying(15) NOT NULL
+);
+
+
+ALTER TABLE public.estadocivil OWNER TO usrgrh;
+
+--
+-- TOC entry 2229 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: TABLE estadocivil; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE estadocivil IS 'Estado civil de la persona';
+
+
+--
+-- TOC entry 2230 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: COLUMN estadocivil.idestadocivil; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN estadocivil.idestadocivil IS 'Identificador único del Estado civil ';
+
+
+--
+-- TOC entry 2231 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: COLUMN estadocivil.abreviatura; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN estadocivil.abreviatura IS 'Abreviatura del estado civil';
+
+
+--
+-- TOC entry 2232 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: COLUMN estadocivil.nombre; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN estadocivil.nombre IS 'Nombre del estado civil ';
+
+
+--
+-- TOC entry 250 (class 1255 OID 74253)
+-- Name: fn_estadocivil_sel(smallint, smallint, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_estadocivil_sel(smallint, smallint, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF estadocivil
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_idestadocivil alias for $2; -- Id de la tabla
+	pagina alias for $3;
+	limite alias for $4;
+	colind alias for $5;
+	coldir alias for $6;
+	inicio integer;
+	 consulta TEXT = 'select idestadocivil, abreviatura, nombre from estadocivil';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 1 then -- Consulta por el id de la tabla
+		consulta = consulta || ' where idestadocivil = ' || _idestadocivil;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir;
+	if limite > 0 then
+		consulta = consulta || ' limit ' || limite || ' offset ' || inicio;
+	end if;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_estadocivil_sel(smallint, smallint, integer, integer, integer, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2233 (class 0 OID 0)
+-- Dependencies: 250
+-- Name: FUNCTION fn_estadocivil_sel(smallint, smallint, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_estadocivil_sel(smallint, smallint, integer, integer, integer, character varying) IS 'Funcion que permite consultar estadocivil';
+
+
+--
+-- TOC entry 255 (class 1255 OID 74254)
+-- Name: fn_estadocivil_upd(smallint, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_estadocivil_upd(smallint, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idestadocivil alias for $1;
+	_abreviatura alias for $2;
+	_nombre alias for $3;
+BEGIN
+	update estadocivil set abreviatura = _abreviatura, nombre = _nombre where idestadocivil = _idestadocivil;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_estadocivil_upd(smallint, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2234 (class 0 OID 0)
+-- Dependencies: 255
+-- Name: FUNCTION fn_estadocivil_upd(smallint, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_estadocivil_upd(smallint, character varying, character varying) IS 'Funcion que permite actualizar estadocivil';
+
+
+--
+-- TOC entry 261 (class 1255 OID 74251)
+-- Name: fn_genero_del(smallint); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_genero_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idgenero alias for $1; -- Id de la tabla
+BEGIN
+	delete from genero where idgenero = _idgenero;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_genero_del(smallint) OWNER TO usringenio;
+
+--
+-- TOC entry 2235 (class 0 OID 0)
+-- Dependencies: 261
+-- Name: FUNCTION fn_genero_del(smallint); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_genero_del(smallint) IS 'Funcion que permite actualizar genero';
+
+
+--
+-- TOC entry 257 (class 1255 OID 74248)
+-- Name: fn_genero_ins(character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_genero_ins(character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_sigla alias for $1;
+	_genero alias for $2;
+begin
+	insert into genero values (default, _sigla, _genero);
+	if found then
+		return currval('sqc_genero'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_genero_ins(character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2236 (class 0 OID 0)
+-- Dependencies: 257
+-- Name: FUNCTION fn_genero_ins(character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_genero_ins(character varying, character varying) IS 'Funcion que permite insertar genero';
+
+
+--
+-- TOC entry 186 (class 1259 OID 74100)
+-- Name: sqc_genero; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_genero
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_genero OWNER TO usrgrh;
+
+--
+-- TOC entry 2237 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: SEQUENCE sqc_genero; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_genero IS 'Secuencia de Genero';
+
+
+--
+-- TOC entry 187 (class 1259 OID 74102)
+-- Name: genero; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE genero (
+    idgenero smallint DEFAULT nextval('sqc_genero'::regclass) NOT NULL,
+    sigla character varying(1) NOT NULL,
+    genero character varying(10) NOT NULL
+);
+
+
+ALTER TABLE public.genero OWNER TO usrgrh;
+
+--
+-- TOC entry 2238 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: TABLE genero; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE genero IS 'Genero de la persona';
+
+
+--
+-- TOC entry 2239 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: COLUMN genero.idgenero; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN genero.idgenero IS 'Identificador único del Genero';
+
+
+--
+-- TOC entry 2240 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: COLUMN genero.sigla; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN genero.sigla IS 'Sigla del Genero';
+
+
+--
+-- TOC entry 2241 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: COLUMN genero.genero; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN genero.genero IS 'Nombre del genero';
+
+
+--
+-- TOC entry 259 (class 1255 OID 74249)
+-- Name: fn_genero_sel(smallint, smallint, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_genero_sel(smallint, smallint, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF genero
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_idgenero alias for $2; -- Id de la tabla
+	pagina alias for $3;
+	limite alias for $4;
+	colind alias for $5;
+	coldir alias for $6;
+	inicio integer;
+	 consulta TEXT = 'select idgenero, sigla, genero from genero';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 1 then -- Consulta por el id de la tabla
+		consulta = consulta || ' where idgenero = ' || _idgenero;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir;
+	if limite < 0 then
+		consulta = consulta || ' limit ' || limite || ' offset ' || inicio;
+	end if;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_genero_sel(smallint, smallint, integer, integer, integer, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2242 (class 0 OID 0)
+-- Dependencies: 259
+-- Name: FUNCTION fn_genero_sel(smallint, smallint, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_genero_sel(smallint, smallint, integer, integer, integer, character varying) IS 'Funcion que permite consultar genero';
+
+
+--
+-- TOC entry 260 (class 1255 OID 74250)
+-- Name: fn_genero_upd(smallint, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_genero_upd(smallint, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idgenero alias for $1;
+	_sigla alias for $2;
+	_genero alias for $3;
+BEGIN
+	update genero set sigla = _sigla, genero = _genero where idgenero = _idgenero;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_genero_upd(smallint, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2243 (class 0 OID 0)
+-- Dependencies: 260
+-- Name: FUNCTION fn_genero_upd(smallint, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_genero_upd(smallint, character varying, character varying) IS 'Funcion que permite actualizar genero';
+
+
+--
+-- TOC entry 265 (class 1255 OID 74258)
+-- Name: fn_hojadevida_del(integer); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_hojadevida_del(integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idhojadevida alias for $1; -- Id de la tabla
+BEGIN
+	delete from hojadevida where idhojadevida = _idhojadevida;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_hojadevida_del(integer) OWNER TO usringenio;
+
+--
+-- TOC entry 2244 (class 0 OID 0)
+-- Dependencies: 265
+-- Name: FUNCTION fn_hojadevida_del(integer); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_hojadevida_del(integer) IS 'Funcion que permite actualizar hojadevida';
+
+
+--
+-- TOC entry 263 (class 1255 OID 74256)
+-- Name: fn_hojadevida_ins(smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_hojadevida_ins(smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idtipodedocumento alias for $1;
+	_numerodocumento alias for $2;
+	_primerapellido alias for $3;
+	_segundoapellido alias for $4;
+	_nombres alias for $5;
+	_idgenero alias for $6;
+	_libretamilitar alias for $7;
+	_distritolm alias for $8;
+	_lugarnacimiento alias for $9;
+	_lugarexpediciond alias for $10;
+	_lugarresidencia alias for $11;
+	_fechanacimiento alias for $12;
+	_fechaexpediciond alias for $13;
+	_idestadocivil alias for $14;
+	_disponibilidadviaje alias for $15;
+	_direccion alias for $16;
+	_telefono alias for $17;
+	_correo alias for $18;
+	_foto alias for $19;
+begin
+	insert into hojadevida values (default, _idtipodedocumento, _numerodocumento, _primerapellido, _segundoapellido, _nombres, _idgenero, _libretamilitar, _distritolm, _lugarnacimiento, _lugarexpediciond, _lugarresidencia, _fechanacimiento, _fechaexpediciond, _idestadocivil, _disponibilidadviaje, _direccion, _telefono, _correo, _foto);
+	if found then
+		return currval('sqc_hojadevida'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_hojadevida_ins(smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2245 (class 0 OID 0)
+-- Dependencies: 263
+-- Name: FUNCTION fn_hojadevida_ins(smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_hojadevida_ins(smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) IS 'Funcion que permite insertar hojadevida';
+
+
+--
+-- TOC entry 266 (class 1255 OID 74262)
+-- Name: fn_hojadevida_sel(smallint, integer, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_hojadevida_sel(smallint, integer, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF t_hojadevida
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_idhojadevida alias for $2; -- Id de la tabla
+	pagina alias for $3;
+	limite alias for $4;
+	colind alias for $5;
+	coldir alias for $6;
+	inicio integer;
+	consulta TEXT = 'select h.idhojadevida, h.idtipodedocumento, t.tipodedocumento, h.numerodocumento, h.primerapellido, h.segundoapellido, h.nombres,
+				h.idgenero, g.genero, h.libretamilitar, h.distritolm, h.lugarnacimiento as idlugarnacimiento, m.nombre as lugardenacimiento,
+				h.lugarexpediciond, me.nombre as lugardeexpedicion, h.lugarresidencia as idlugarresidencia, mr.nombre as lugarderesidencia, h.fechanacimiento,
+				h.fechaexpediciond, h.idestadocivil, e.nombre as estadocivil, h.disponibilidadviaje, h.direccion, h.telefono, h.correo, h.foto
+			from hojadevida as h inner join tiposdedocumento as t on h.idtipodedocumento = t.idtipodedocumento inner join
+				genero as g on h.idgenero = g.idgenero inner join municipios as m on
+				h.lugarnacimiento = m.idmunicipio inner join municipios as me on h.lugarexpediciond = me.idmunicipio inner join municipios as mr on
+				h.lugarresidencia = mr.idmunicipio inner join estadocivil as e on h.idestadocivil = e.idestadocivil';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 1 then -- Consulta por el id de la tabla
+		consulta = consulta || ' where idhojadevida = ' || _idhojadevida;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir;
+	if limite > 0 then
+		consulta = consulta || ' limit ' || limite || ' offset ' || inicio;
+	end if;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_hojadevida_sel(smallint, integer, integer, integer, integer, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2246 (class 0 OID 0)
+-- Dependencies: 266
+-- Name: FUNCTION fn_hojadevida_sel(smallint, integer, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_hojadevida_sel(smallint, integer, integer, integer, integer, character varying) IS 'Funcion que permite consultar hojadevida';
+
+
+--
+-- TOC entry 264 (class 1255 OID 74257)
+-- Name: fn_hojadevida_upd(integer, smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_hojadevida_upd(integer, smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idhojadevida alias for $1;
+	_idtipodedocumento alias for $2;
+	_numerodocumento alias for $3;
+	_primerapellido alias for $4;
+	_segundoapellido alias for $5;
+	_nombres alias for $6;
+	_idgenero alias for $7;
+	_libretamilitar alias for $8;
+	_distritolm alias for $9;
+	_lugarnacimiento alias for $10;
+	_lugarexpediciond alias for $11;
+	_lugarresidencia alias for $12;
+	_fechanacimiento alias for $13;
+	_fechaexpediciond alias for $14;
+	_idestadocivil alias for $15;
+	_disponibilidadviaje alias for $16;
+	_direccion alias for $17;
+	_telefono alias for $18;
+	_correo alias for $19;
+	_foto alias for $20;
+BEGIN
+	update hojadevida set idtipodedocumento = _idtipodedocumento, numerodocumento = _numerodocumento, primerapellido = _primerapellido, segundoapellido = _segundoapellido, nombres = _nombres, idgenero = _idgenero, libretamilitar = _libretamilitar, distritolm = _distritolm, lugarnacimiento = _lugarnacimiento, lugarexpediciond = _lugarexpediciond, lugarresidencia = _lugarresidencia, fechanacimiento = _fechanacimiento, fechaexpediciond = _fechaexpediciond, idestadocivil = _idestadocivil, disponibilidadviaje = _disponibilidadviaje, direccion = _direccion, telefono = _telefono, correo = _correo, foto = _foto where idhojadevida = _idhojadevida;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_hojadevida_upd(integer, smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2247 (class 0 OID 0)
+-- Dependencies: 264
+-- Name: FUNCTION fn_hojadevida_upd(integer, smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_hojadevida_upd(integer, smallint, character varying, character varying, character varying, character varying, smallint, character varying, character varying, smallint, smallint, smallint, date, date, smallint, boolean, character varying, character varying, character varying, character varying) IS 'Funcion que permite actualizar hojadevida';
+
+
+--
+-- TOC entry 249 (class 1255 OID 74237)
+-- Name: fn_municipios_del(smallint); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_municipios_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idmunicipio alias for $1; -- Id de la tabla
+BEGIN
+	delete from municipios where idmunicipio = _idmunicipio;
+	if found then
+		return 1; -- Se elimino correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_municipios_del(smallint) OWNER TO usringenio;
+
+--
+-- TOC entry 2248 (class 0 OID 0)
+-- Dependencies: 249
+-- Name: FUNCTION fn_municipios_del(smallint); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_municipios_del(smallint) IS 'Funcion que permite actualizar municipios';
+
+
+--
+-- TOC entry 253 (class 1255 OID 74234)
+-- Name: fn_municipios_ins(smallint, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_municipios_ins(smallint, character varying, character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_iddepartamento alias for $1;
+	_codigo alias for $2;
+	_nombre alias for $3;
+begin
+	insert into municipios values (default, _iddepartamento, _codigo, _nombre);
+	if found then
+		return currval('sqc_municipios'); -- Se ingreso correctamente el registro
+	else
+		return 0; -- Error de la base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_municipios_ins(smallint, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2249 (class 0 OID 0)
+-- Dependencies: 253
+-- Name: FUNCTION fn_municipios_ins(smallint, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_municipios_ins(smallint, character varying, character varying) IS 'Funcion que permite insertar municipios';
+
+
+--
+-- TOC entry 258 (class 1255 OID 74247)
+-- Name: fn_municipios_sel(smallint, smallint, smallint, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_municipios_sel(smallint, smallint, smallint, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF t_municipio
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_tipo alias for $1; -- Tipo de busqueda
+	_idmunicipio alias for $2; -- Id de la tabla
+	_iddepartamento alias for $3; -- Id del departamento
+	pagina alias for $4;
+	limite alias for $5;
+	colind alias for $6;
+	coldir alias for $7;
+	inicio integer;
+	consulta TEXT = 'select m.iddepartamento, d.codigo as codigodepto, d.nombre as departamento, m.idmunicipio, m.codigo, m.nombre as municipio from municipios as m inner join departamentos as d on m.iddepartamento = d.iddepartamento';
+begin
+	inicio = limite * pagina - limite;
+	if _tipo = 1 then -- Consulta por el id del municipio
+		consulta = consulta || ' where m.idmunicipio = ' || _idmunicipio;
+	elsif _tipo = 2 then -- Consulta por el id del departamento
+		consulta = consulta || ' where m.iddepartamento = ' || _iddepartamento;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir;
+	if limite > 0 then -- Si se limitan los registros
+		consulta = consulta || ' limit ' || limite || ' offset ' || inicio;
+	end if;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_municipios_sel(smallint, smallint, smallint, integer, integer, integer, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2250 (class 0 OID 0)
+-- Dependencies: 258
+-- Name: FUNCTION fn_municipios_sel(smallint, smallint, smallint, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_municipios_sel(smallint, smallint, smallint, integer, integer, integer, character varying) IS 'Funcion que permite consultar municipios';
+
+
+--
+-- TOC entry 248 (class 1255 OID 74236)
+-- Name: fn_municipios_upd(smallint, smallint, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usringenio
+--
+
+CREATE FUNCTION fn_municipios_upd(smallint, smallint, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	_idmunicipio alias for $1;
+	_iddepartamento alias for $2;
+	_codigo alias for $3;
+	_nombre alias for $4;
+BEGIN
+	update municipios set iddepartamento = _iddepartamento, codigo = _codigo, nombre = _nombre where idmunicipio = _idmunicipio;
+	if found then
+		return 1; -- Se actualizo correctamente
+	else
+		return 0; -- Error de la BD
+	end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Error de violacion de UK
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_municipios_upd(smallint, smallint, character varying, character varying) OWNER TO usringenio;
+
+--
+-- TOC entry 2251 (class 0 OID 0)
+-- Dependencies: 248
+-- Name: FUNCTION fn_municipios_upd(smallint, smallint, character varying, character varying); Type: COMMENT; Schema: public; Owner: usringenio
+--
+
+COMMENT ON FUNCTION fn_municipios_upd(smallint, smallint, character varying, character varying) IS 'Funcion que permite actualizar municipios';
+
+
+--
+-- TOC entry 225 (class 1255 OID 73984)
+-- Name: fn_objetos_del(character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetos_del(character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	cod alias for $1;
+begin
+	delete from objetos where obj_codigo=cod;
+	if found then
+		return 1; -- Se borro el registro
+	else
+		return 2; -- Error de base de datos
+	end if;
+exception
+	when foreign_key_violation then
+		return 3; -- Existe informacion foranea
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_objetos_del(character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2252 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: FUNCTION fn_objetos_del(character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetos_del(character varying) IS 'Funcion que permite borrar registros de la tabla objetos';
+
+
+--
+-- TOC entry 226 (class 1255 OID 73985)
+-- Name: fn_objetos_ins(character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetos_ins(character varying, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	cod alias for $1;
+	nom alias for $2;
+	des alias for $3;
+begin
+	insert into objetos (obj_codigo, obj_nombre, obj_descripcion, obj_activo) values (cod, nom, des, default);
+	if found then
+		return 1; -- Se ingreso correctamente el registro
+	else
+		return 2; -- Error en la base de datos
+	end if;
+exception
+	when unique_violation then
+		return 3; -- Ya existe ese codigo
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_objetos_ins(character varying, character varying, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2253 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: FUNCTION fn_objetos_ins(character varying, character varying, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetos_ins(character varying, character varying, character varying) IS 'Funcion que permite ingresar registros a la tabla objetos';
+
+
+--
+-- TOC entry 176 (class 1259 OID 73986)
+-- Name: objetos; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE objetos (
+    obj_codigo character varying(15) NOT NULL,
+    obj_nombre character varying(50) NOT NULL,
+    obj_descripcion character varying(100) NOT NULL,
+    obj_activo boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.objetos OWNER TO usrgrh;
+
+--
+-- TOC entry 2254 (class 0 OID 0)
+-- Dependencies: 176
+-- Name: TABLE objetos; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE objetos IS 'Tabla que contiene los objetos del aplicativo';
+
+
+--
+-- TOC entry 227 (class 1255 OID 73990)
+-- Name: fn_objetos_sel(smallint, character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetos_sel(smallint, character varying, character varying, boolean) RETURNS SETOF objetos
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tip alias for $1;
+	cod alias for $2;
+	nom alias for $3;
+	act alias for $4;
+begin
+	if tip=0 then -- Consulta por codigo
+		return query select obj_codigo, obj_nombre, obj_descripcion, obj_activo from objetos where obj_codigo=cod;
+	elsif tip=1 then -- Conslta por nombre
+		return query select obj_codigo, obj_nombre, obj_descripcion, obj_activo from objetos where obj_nombre like nom;
+	elsif tip=2 then -- Consulta por activo
+		return query select obj_codigo, obj_nombre, obj_descripcion, obj_activo from objetos where obj_activo=act;
+	elsif tip=3 then -- Consulta de todos los registros
+		return query select obj_codigo, obj_nombre, obj_descripcion, obj_activo from objetos;
+	end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_objetos_sel(smallint, character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2255 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: FUNCTION fn_objetos_sel(smallint, character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetos_sel(smallint, character varying, character varying, boolean) IS 'Funcion que retorna los objetos';
+
+
+--
+-- TOC entry 228 (class 1255 OID 73991)
+-- Name: fn_objetos_upd(character varying, character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetos_upd(character varying, character varying, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	cod alias for $1;
+	nom alias for $2;
+	des alias for $3;
+	act alias for $4;
+begin
+	update objetos set obj_nombre=nom, obj_descripcion=des, obj_activo=act where obj_codigo=cod;
+	if found then
+		return 1;
+	else
+		return 2;
+	end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_objetos_upd(character varying, character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2256 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: FUNCTION fn_objetos_upd(character varying, character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetos_upd(character varying, character varying, character varying, boolean) IS 'Funcion que permite actualizar la informacion de la tabla objetos';
+
+
+--
+-- TOC entry 229 (class 1255 OID 73992)
+-- Name: fn_objetosxperfil_triupdobj(); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetosxperfil_triupdobj() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+	insert into objetosxperfil select idperfil, NEW.obj_codigo, false, false, false, false from perfiles;
+return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.fn_objetosxperfil_triupdobj() OWNER TO usrgrh;
+
+--
+-- TOC entry 2257 (class 0 OID 0)
+-- Dependencies: 229
+-- Name: FUNCTION fn_objetosxperfil_triupdobj(); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetosxperfil_triupdobj() IS 'Funcion que permite actualizar la tabla objetosxperfil cuando se crea un nuevo objeto';
+
+
+--
+-- TOC entry 230 (class 1255 OID 73993)
+-- Name: fn_objetosxperfil_triupdper(); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetosxperfil_triupdper() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+	insert into objetosxperfil select NEW.idperfil, obj_codigo, false, false, false, false from objetos;
+return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.fn_objetosxperfil_triupdper() OWNER TO usrgrh;
+
+--
+-- TOC entry 2258 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: FUNCTION fn_objetosxperfil_triupdper(); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetosxperfil_triupdper() IS 'Funcion que permite actualizar la tabla objetosxperfil cuando se crea un nuevo perfil';
+
+
+--
+-- TOC entry 231 (class 1255 OID 73994)
+-- Name: fn_objetosxperfil_val(smallint, smallint, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_objetosxperfil_val(smallint, smallint, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tip alias for $1;
+	per alias for $2;
+	obj alias for $3;
+	res smallint := 0;
+begin
+	if tip=1 then -- Si es insertar
+		select count(*) into res from objetosxperfil where oxp_perfil=per and oxp_objeto=obj and oxp_insertar=true;
+	elsif tip=2 then -- Si es modificar
+		select count(*) into res from objetosxperfil where oxp_perfil=per and oxp_objeto=obj and oxp_modificar=true;
+	elsif tip=3 then -- Si es borrar
+		select count(*) into res from objetosxperfil where oxp_perfil=per and oxp_objeto=obj and oxp_borrar=true;
+	elsif tip=4 then -- Si es consultar
+		select count(*) into res from objetosxperfil where oxp_perfil=per and oxp_objeto=obj and oxp_consultar=true;
+	end if;
+return res;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_objetosxperfil_val(smallint, smallint, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2259 (class 0 OID 0)
+-- Dependencies: 231
+-- Name: FUNCTION fn_objetosxperfil_val(smallint, smallint, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_objetosxperfil_val(smallint, smallint, character varying) IS 'Funcion que busca el permiso del perfil';
+
+
+--
+-- TOC entry 232 (class 1255 OID 73995)
+-- Name: fn_perfiles_del(smallint); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_perfiles_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	idp alias for $1;
+	res smallint :=0; -- Esta variable devolvera la respuesta (si es 0 no realizo ningun trabajo)
+begin
+	perform * from perfiles where idperfil = idp;
+	if found then
+		delete from perfiles where idperfil=idp;
+		if found then
+			res := 1; -- Se borro correctamente el registro
+		end if;
+	else
+		res := 2; -- No existe el perfil a eliminar
+	end if;
+return res;
+exception when foreign_key_violation then
+return 3; -- Si este registro tiene hijos, se devuelve 3 para informar
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_perfiles_del(smallint) OWNER TO usrgrh;
+
+--
+-- TOC entry 2260 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: FUNCTION fn_perfiles_del(smallint); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_perfiles_del(smallint) IS 'Funcion que borra registros de la tabla perfiles';
+
+
+--
+-- TOC entry 233 (class 1255 OID 73996)
+-- Name: fn_perfiles_ins(smallint, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_perfiles_ins(smallint, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idp alias for $1;
+  nom alias for $2;
+  act alias for $3; 
+  respuesta smallint := 0; -- Es el valor devuelto por la funcion (si es 0 no realizo ningun trabajo)
+begin
+      perform * from perfiles where nombre=nom;
+      if not found then
+         insert into perfiles values (idp, nom, act);
+         if found then
+            respuesta := 1; -- Se ingreso correctamente
+         end if;
+      else
+         respuesta := 2; -- Ya existe el nombre del perfil
+      end if;
+return respuesta;
+exception when unique_violation then
+return 3; -- Si el codigo ya existe, no se inserta y se avisa.
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_perfiles_ins(smallint, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2261 (class 0 OID 0)
+-- Dependencies: 233
+-- Name: FUNCTION fn_perfiles_ins(smallint, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_perfiles_ins(smallint, character varying, boolean) IS 'Funcion que inserta datos en la tabla perfiles';
+
+
+--
+-- TOC entry 177 (class 1259 OID 73997)
+-- Name: perfiles; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE perfiles (
+    idperfil smallint NOT NULL,
+    nombre character varying(25) NOT NULL,
+    activo boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.perfiles OWNER TO usrgrh;
+
+--
+-- TOC entry 2262 (class 0 OID 0)
+-- Dependencies: 177
+-- Name: TABLE perfiles; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE perfiles IS 'Tabla que contiene los perfiles de los usuarios del sistema';
+
+
+--
+-- TOC entry 234 (class 1255 OID 74001)
+-- Name: fn_perfiles_sel(smallint, smallint, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_perfiles_sel(smallint, smallint, character varying, boolean) RETURNS SETOF perfiles
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tip alias for $1;
+	idp alias for $2;
+	nom alias for $3;
+	act alias for $4;
+begin
+	if tip=0 then -- Si el tipo de consulta es todos
+		return query select idperfil, nombre, activo from perfiles;
+	elsif tip=1 then -- Si el tipo de consulta es por idperfil
+		return query select idperfil, nombre, activo from perfiles where idperfil=idp;
+	elsif tip=2 then -- Si el tipo de consulta es por nombre del perfil
+		return query select idperfil, nombre, activo from perfiles where nombre like nom;
+	elsif tip=3 then -- Si el tipo de consulta es por si esta activo o no
+		return query select idperfil, nombre, activo from perfiles where activo = act;
+	end if;
+end;$_$;
+
+
+ALTER FUNCTION public.fn_perfiles_sel(smallint, smallint, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2263 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: FUNCTION fn_perfiles_sel(smallint, smallint, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_perfiles_sel(smallint, smallint, character varying, boolean) IS 'Funcion que permite consultar la tabla perfiles';
+
+
+--
+-- TOC entry 235 (class 1255 OID 74002)
+-- Name: fn_perfiles_upd(smallint, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_perfiles_upd(smallint, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	idp alias for $1;
+	nom alias for $2;
+	act alias for $3;
+	res smallint := 0; -- Este es el valor a devolver (si es 0 no realizo ningun trabajo)
+begin
+	perform * from perfiles where idperfil=idp;
+	if found then -- Si existe el codigo del perfil a modificar entonces:
+	   perform * from perfiles where nombre=nom and idperfil<>idp;
+	   if not found then
+		update perfiles set nombre=nom, activo=act where idperfil=idp;
+		if found then
+			res := 1; -- Actualizacion correcta
+		end if;
+	   else
+		res :=2; -- Ya existe ese nombre de perfil
+	   end if;
+	else -- Si no existe el codigo del perfil, no se hace nada
+		res := 3;
+	end if;
+return res;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_perfiles_upd(smallint, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2264 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: FUNCTION fn_perfiles_upd(smallint, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_perfiles_upd(smallint, character varying, boolean) IS 'Funcion que actualiza la tabla perfiles';
+
+
+--
+-- TOC entry 236 (class 1255 OID 74003)
+-- Name: fn_tiposdedocumento_del(smallint); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_tiposdedocumento_del(smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	itd alias for $1;
+begin
+	perform * from tiposdedocumento where idtipodedocumento = itd;
+	if found then
+		delete from tiposdedocumento where idtipodedocumento=itd;
+		if found then
+			return 1; -- Se borro correctamente el registro
+		end if;
+	else
+		return 0; -- No existe el perfil a eliminar
+	end if;
+return res;
+exception
+	when foreign_key_violation then
+		return -1; -- Si este registro tiene hijos, se devuelve 3 para informar
+	when unique_violation then
+		return -2; -- Si ya existe
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_tiposdedocumento_del(smallint) OWNER TO usrgrh;
+
+--
+-- TOC entry 2265 (class 0 OID 0)
+-- Dependencies: 236
+-- Name: FUNCTION fn_tiposdedocumento_del(smallint); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_tiposdedocumento_del(smallint) IS 'Funcion que borra registros de la tabla tipos de documento';
+
+
+--
+-- TOC entry 237 (class 1255 OID 74004)
+-- Name: fn_tiposdedocumento_ins(character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_tiposdedocumento_ins(character varying, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  abr alias for $1;
+  nom alias for $2;
+  act alias for $3; 
+  respuesta smallint := 0; -- Es el valor devuelto por la funcion (si es 0 no realizo ningun trabajo)
+begin
+      insert into tiposdedocumento (abreviatura, tipodedocumento, activo) values (abr, nom, act);
+      if found then
+          return currval('sqc_tiposdocumento'); -- Se ingreso correctamente el registro
+      else
+          return 0; -- Error de la base de datos
+      end if;
+exception
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Si el codigo ya existe, no se inserta y se avisa.
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_tiposdedocumento_ins(character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2266 (class 0 OID 0)
+-- Dependencies: 237
+-- Name: FUNCTION fn_tiposdedocumento_ins(character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_tiposdedocumento_ins(character varying, character varying, boolean) IS 'Funcion que inserta datos en la tabla tiposdedocumento';
+
+
+--
+-- TOC entry 178 (class 1259 OID 74005)
+-- Name: sqc_tiposdocumento; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_tiposdocumento
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_tiposdocumento OWNER TO usrgrh;
+
+--
+-- TOC entry 179 (class 1259 OID 74007)
+-- Name: tiposdedocumento; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE tiposdedocumento (
+    idtipodedocumento smallint DEFAULT nextval('sqc_tiposdocumento'::regclass) NOT NULL,
+    abreviatura character varying(2) NOT NULL,
+    tipodedocumento character varying(25) NOT NULL,
+    activo boolean DEFAULT true NOT NULL
+);
+
+
+ALTER TABLE public.tiposdedocumento OWNER TO usrgrh;
+
+--
+-- TOC entry 2267 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: TABLE tiposdedocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE tiposdedocumento IS 'Tabla que contiene los tipos de documento';
+
+
+--
+-- TOC entry 2268 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: COLUMN tiposdedocumento.idtipodedocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN tiposdedocumento.idtipodedocumento IS 'Identificador unico del tipo de documento';
+
+
+--
+-- TOC entry 2269 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: COLUMN tiposdedocumento.abreviatura; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN tiposdedocumento.abreviatura IS 'Abreviatura del tipo de documento';
+
+
+--
+-- TOC entry 2270 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: COLUMN tiposdedocumento.tipodedocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN tiposdedocumento.tipodedocumento IS 'Nombre del tipo de documento';
+
+
+--
+-- TOC entry 2271 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: COLUMN tiposdedocumento.activo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN tiposdedocumento.activo IS 'Identifica si el tipo de documento está activo o no';
+
+
+--
+-- TOC entry 239 (class 1255 OID 74012)
+-- Name: fn_tiposdedocumento_sel(smallint, smallint, character varying, character varying, boolean, integer, integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_tiposdedocumento_sel(smallint, smallint, character varying, character varying, boolean, integer DEFAULT 1, integer DEFAULT 5, integer DEFAULT 1, character varying DEFAULT 'asc'::character varying) RETURNS SETOF tiposdedocumento
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	tip alias for $1;
+	idt alias for $2;
+	abr alias for $3;
+	nom alias for $4;
+	act alias for $5;
+	pagina alias for $6;
+	limite alias for $7;
+	colind alias for $8;
+	coldir alias for $9;
+	inicio integer;
+	consulta TEXT = 'select idtipodedocumento, abreviatura, tipodedocumento, activo from tiposdedocumento';
+begin
+	inicio = limite * pagina - limite;
+	if tip=0 then -- Si el tipo de consulta es todos
+		consulta = consulta;
+	elsif tip=1 then -- Si el tipo de consulta es por idtipodedocumento
+		consulta = consulta || ' where idtipodedocumento = ' || idt;
+	elsif tip=2 then -- Si el tipo de consulta es por abreviatura del tipodedocumento
+		consulta = consulta || ' where abreviatura like ' || quote_literal(abr);
+	elsif tip=3 then -- Si el tipo de consulta es por el nombre del tipo de documento
+		consulta = consulta || ' where tipodedocumento like ' || quote_literal(nom);
+	elsif tip=4 then -- Si el tipo de consulta es por activo
+		consulta = consulta || ' where activo = ' || act;
+	end if;
+	consulta = consulta || ' order by ' || colind || ' ' || coldir || ' limit ' || limite || ' offset ' || inicio;
+	return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_tiposdedocumento_sel(smallint, smallint, character varying, character varying, boolean, integer, integer, integer, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2272 (class 0 OID 0)
+-- Dependencies: 239
+-- Name: FUNCTION fn_tiposdedocumento_sel(smallint, smallint, character varying, character varying, boolean, integer, integer, integer, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_tiposdedocumento_sel(smallint, smallint, character varying, character varying, boolean, integer, integer, integer, character varying) IS 'Funcion que permite consultar la tabla tipos de documento';
+
+
+--
+-- TOC entry 240 (class 1255 OID 74013)
+-- Name: fn_tiposdedocumento_upd(smallint, character varying, character varying, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_tiposdedocumento_upd(smallint, character varying, character varying, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+	itd alias for $1;
+	abr alias for $2;
+	tdd alias for $3;
+	act alias for $4;
+begin
+    update tiposdedocumento set abreviatura = abr, tipodedocumento=tdd, activo=act where idtipodedocumento=itd;
+    if found then
+	return 1; -- Actualizacion correcta
+    else -- Si no existe el codigo del tipo de documento, no se hace nada
+	return 0; -- No existe el código del tipo de documento
+    end if;
+exception 
+	when foreign_key_violation then
+		return -1; -- Error de violacion de FK
+	when unique_violation then
+		return -2; -- Excepcion de unique violation
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_tiposdedocumento_upd(smallint, character varying, character varying, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2273 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: FUNCTION fn_tiposdedocumento_upd(smallint, character varying, character varying, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_tiposdedocumento_upd(smallint, character varying, character varying, boolean) IS 'Funcion que actualiza la tabla tipos de documento';
+
+
+--
+-- TOC entry 241 (class 1255 OID 74014)
+-- Name: fn_usuarios_blo(integer, boolean); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_blo(integer, boolean) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+DECLARE
+  ide alias for $1;
+  blo alias for $2;
+BEGIN
+  perform * from usuarios where usu_id = ide and usu_bloqueado = blo;
+  IF FOUND THEN
+    return 1; -- El usuario ya se encuentra en el estado solicitado
+  ELSE
+    IF blo = true THEN
+      update usuarios set usu_bloqueado = true and usu_fechabloqueado = now();
+      IF FOUND THEN
+        return 2; -- BLOQUEADO CORRECTAMENTE
+      END IF;
+    ELSE
+      update usuarios set usu_bloqueado = false and usu_fechadesbloqueado = now();
+      IF FOUND THEN
+        return 2; -- DESBLOQUEADO CORRECTAMENTE
+      END IF;
+    END IF;
+  END IF;
+END;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_blo(integer, boolean) OWNER TO usrgrh;
+
+--
+-- TOC entry 2274 (class 0 OID 0)
+-- Dependencies: 241
+-- Name: FUNCTION fn_usuarios_blo(integer, boolean); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_blo(integer, boolean) IS 'Funcion que permite bloquear o desbloquear un usuario';
+
+
+--
+-- TOC entry 238 (class 1255 OID 74015)
+-- Name: fn_usuarios_cla(integer, character varying, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_cla(integer, character varying, character varying) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idu alias for $1;
+  cla alias for $2;
+  cnu alias for $3;
+begin
+  perform * from usuarios where usu_id=idu and usu_clave=cla;
+  if found then
+    update usuarios set usu_clave=cnu where usu_id=idu;
+    if found then
+      return 1; -- Actualizacion correcta
+    else
+      return 2; -- Error de actualizacion
+    end if;
+  else
+    return 3; -- Clave anterior incorrecta
+  end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_cla(integer, character varying, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2275 (class 0 OID 0)
+-- Dependencies: 238
+-- Name: FUNCTION fn_usuarios_cla(integer, character varying, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_cla(integer, character varying, character varying) IS 'Funcion que permite cambiar la clave del usuario';
+
+
+--
+-- TOC entry 242 (class 1255 OID 74016)
+-- Name: fn_usuarios_del(integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_del(integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idu alias for $1;
+begin
+  delete from usuarios where usu_id=idu;
+  if found then
+    return 1; -- Se actualizo correctamente el registro
+  else
+    return 2; -- No se encontro el registro a modificar
+  end if;
+exception
+  when foreign_key_violation then
+    return 3; -- Tiene hijos y no se puede eliminar
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_del(integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2276 (class 0 OID 0)
+-- Dependencies: 242
+-- Name: FUNCTION fn_usuarios_del(integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_del(integer) IS 'Funcion que borra los registros de la tabla usuarios';
+
+
+--
+-- TOC entry 243 (class 1255 OID 74017)
+-- Name: fn_usuarios_ing(integer); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_ing(integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idu alias for $1;
+begin
+  update usuarios set usu_ultimoingreso=now() where usu_id=idu;
+  if found then
+    return 1; -- Se actualizo correctamente el registro
+  else
+    return 2; -- No existe el usuario a actualizar
+  end if;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_ing(integer) OWNER TO usrgrh;
+
+--
+-- TOC entry 2277 (class 0 OID 0)
+-- Dependencies: 243
+-- Name: FUNCTION fn_usuarios_ing(integer); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_ing(integer) IS 'Funcion que actualiza la fecha del ultimo ingreso del usuario';
+
+
+--
+-- TOC entry 244 (class 1255 OID 74018)
+-- Name: fn_usuarios_ins(character varying, character varying, character varying, character varying, character varying, smallint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION fn_usuarios_ins(character varying, character varying, character varying, character varying, character varying, smallint) RETURNS integer
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  cod alias for $1;
+  nom alias for $2;
+  ape alias for $3;
+  cor alias for $4;
+  ide alias for $5;
+  per alias for $6;
+begin
+  insert into usuarios values (default, cod, nom, ape, cor, ide, per, default, default, default, default, default, null, null);
+  if found then
+    return currval('sqc_usuarios'); -- Se ingreso correctamente el registro
+  else
+    return 0; -- Error de la base de datos
+  end if;
+exception 
+  when unique_violation then
+    return -1; -- Si ya existe el codigo a ingresar
+  when foreign_key_violation then
+    return -2; -- No existe el perfil a asignar
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_ins(character varying, character varying, character varying, character varying, character varying, smallint) OWNER TO postgres;
+
+--
+-- TOC entry 2278 (class 0 OID 0)
+-- Dependencies: 244
+-- Name: FUNCTION fn_usuarios_ins(character varying, character varying, character varying, character varying, character varying, smallint); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION fn_usuarios_ins(character varying, character varying, character varying, character varying, character varying, smallint) IS 'Funcion que permite ingresar los registros a la tabla usuarios';
+
+
+--
+-- TOC entry 245 (class 1255 OID 74019)
+-- Name: fn_usuarios_sel(smallint, integer, character varying, character varying, character varying, character varying, character varying, smallint, boolean, date, date, boolean, date, date, character varying); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_sel(smallint DEFAULT (-1), integer DEFAULT (-1), character varying DEFAULT ''::character varying, character varying DEFAULT ''::character varying, character varying DEFAULT ''::character varying, character varying DEFAULT ''::character varying, character varying DEFAULT ''::character varying, smallint DEFAULT (-1), boolean DEFAULT NULL::boolean, date DEFAULT NULL::date, date DEFAULT NULL::date, boolean DEFAULT NULL::boolean, date DEFAULT NULL::date, date DEFAULT NULL::date, character varying DEFAULT ''::character varying) RETURNS SETOF t_usuarios
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  tip alias for $1; -- Tipo de busqueda
+  idu alias for $2; -- Id del usuario
+  cod alias for $3; -- Codigo
+  nom alias for $4; -- Nombres
+  ape alias for $5; -- Apellidos
+  cor alias for $6; -- Correo
+  ide alias for $7; -- Identificacion
+  per alias for $8; -- Codigo Perfil
+  ccl alias for $9; -- Cambio de clave
+  fcr alias for $10; -- Fecha de creacion
+  ing alias for $11; -- Fecha de ultimo ingreso
+  blo alias for $12; -- Bloqueado
+  fbl alias for $13; -- Fecha de bloqueado
+  fdb alias for $14; -- Fecha de desbloqueo
+  cla alias for $15; -- Clave
+  consulta TEXT = 'select usu_id, usu_codigo, usu_nombres, usu_apellidos, usu_correo, usu_identificacion, usu_perfil, perfiles.nombre, perfiles.activo, usu_cambiarclave, usu_fechacreacion, usu_ultimoingreso, usu_bloqueado, usu_fechabloqueado, usu_fechadesbloqueado from usuarios inner join perfiles on usu_perfil=idperfil';
+begin
+  if tip=0 then -- Consulta de todos los registros
+    consulta = consulta;
+  elsif tip=1 then -- Consulta por id de usuario
+    consulta = consulta || ' where usu_id = ' || idu;
+  elsif tip=2 then -- Consulta por codigo de usuario
+    consulta = consulta || ' where usu_codigo = ' || quote_literal(cod);
+  elsif tip=3 then -- Consulta por nombre de usuario
+    consulta = consulta || ' where usu_nombres like ' || quote_literal(nom);
+  elsif tip=4 then -- Consulta por apellido de usuario
+    consulta = consulta || ' where usu_apellidos like ' || quote_literal(ape);
+  elsif tip=5 then -- Consulta por correo
+    consulta = consulta || ' where usu_correo like ' || quote_literal(cor);
+  elsif tip=6 then -- Consulta por identificacion
+    consulta = consulta || ' where usu_identificacion = ' || quote_literal(ide);
+  elsif tip=7 then -- Consulta por perfil de usuario
+    consulta = consulta || ' where usu_perfil = ' || per;
+  elsif tip=8 then -- Consulta por perfil activo o no
+    consulta = consulta || ' where perfiles.activo = ' || blo;
+  elsif tip=9 then -- Consulta por cambio de clave
+    consulta = consulta || ' where usu_cambiarclave = ' || ccl;
+  elsif tip=10 then -- Consulta por fecha de creacion exacta
+    consulta = consulta || ' where date(usu_fechacreacion) = ' || quote_literal(fcr);
+  elsif tip=11 then -- Consulta por fecha de creacion menor o igual a
+    consulta = consulta || ' where date(usu_fechacreacion) <= ' || quote_literal(fcr);
+  elsif tip=12 then -- Consulta por fecha de creacion mayor o igual
+    consulta = consulta || ' where date(usu_fechacreacion) >= ' || quote_literal(fcr);
+  elsif tip=13 then -- Consulta por fecha de ingreso exacta
+    consulta = consulta || ' where date(usu_ultimoingreso) = ' || quote_literal(ing);
+  elsif tip=14 then -- Consulta por fecha de ingreso menor o igual a
+    consulta = consulta || ' where date(usu_ultimoingreso) <= ' || quote_literal(ing);
+  elsif tip=15 then -- Consulta por fecha de ingreso mayor o igual a
+    consulta = consulta || ' where date(usu_ultimoingreso) >= ' || quote_literal(ing);
+  elsif tip=16 then -- Consulta por bloqueado
+    consulta = consulta || ' where usu_bloqueado = ' || blo;
+  elsif tip=17 then -- Consulta de fecha de bloqueo exacta
+    consulta = consulta || ' where date(usu_fechabloqueado) = ' || quote_literal(fbl);
+  elsif tip=18 then -- Consulta de fecha de bloqueo menor o igual
+    consulta = consulta || ' where date(usu_fechabloqueado) <= ' || quote_literal(fbl);
+  elsif tip=19 then -- Consulta de fecha de bloqueo mayor o igual
+    consulta = consulta || ' where date(usu_fechabloqueado) >= ' || quote_literal(fbl);
+  elsif tip=20 then -- Consulta de fecha de desbloqueo exacta
+    consulta = consulta || ' where date(usu_fechadesbloqueado) = ' || quote_literal(fdb);
+  elsif tip=21 then -- Consulta de fecha de desbloqueo menor o igual
+    consulta = consulta || ' where date(usu_fechadesbloqueado) <= ' || quote_literal(fdb);
+  elsif tip=22 then -- Consulta de fecha de desbloqueo mayor o igual
+    consulta = consulta || ' where date(usu_fechadesbloqueado) >= ' || quote_literal(fdb);
+  elsif tip=23 then -- Consulta de autenticacion
+    consulta = consulta || ' where usu_codigo = ' || quote_literal(cod) || ' and usu_clave = ' || quote_literal(cla);
+  end if;
+  return query execute consulta;
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_sel(smallint, integer, character varying, character varying, character varying, character varying, character varying, smallint, boolean, date, date, boolean, date, date, character varying) OWNER TO usrgrh;
+
+--
+-- TOC entry 2279 (class 0 OID 0)
+-- Dependencies: 245
+-- Name: FUNCTION fn_usuarios_sel(smallint, integer, character varying, character varying, character varying, character varying, character varying, smallint, boolean, date, date, boolean, date, date, character varying); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_sel(smallint, integer, character varying, character varying, character varying, character varying, character varying, smallint, boolean, date, date, boolean, date, date, character varying) IS 'Funcion que consulta los registros de la tabla usuarios';
+
+
+--
+-- TOC entry 246 (class 1255 OID 74020)
+-- Name: fn_usuarios_upd(integer, character varying, character varying, character varying, character varying, character varying, smallint); Type: FUNCTION; Schema: public; Owner: usrgrh
+--
+
+CREATE FUNCTION fn_usuarios_upd(integer, character varying, character varying, character varying, character varying, character varying, smallint) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $_$
+declare
+  idu alias for $1;
+  cod alias for $2;
+  nom alias for $3;
+  ape alias for $4;
+  cor alias for $5;
+  ide alias for $6;
+  per alias for $7;
+begin
+  update usuarios set usu_codigo=cod, usu_nombres=nom, usu_apellidos=ape, usu_correo=cor, usu_identificacion = ide, usu_perfil=per where usu_id=idu;
+  if found then
+    return 1; -- Se actualizo correctamente el registro
+  else
+    return 2; -- No se encontro el registro a modificar
+  end if;
+exception
+  when foreign_key_violation then
+    return 3; -- No existe el perfil a asignar
+  when unique_violation then
+    return 4; -- No se puede actualizar ese codigo de usuario
+end;
+$_$;
+
+
+ALTER FUNCTION public.fn_usuarios_upd(integer, character varying, character varying, character varying, character varying, character varying, smallint) OWNER TO usrgrh;
+
+--
+-- TOC entry 2280 (class 0 OID 0)
+-- Dependencies: 246
+-- Name: FUNCTION fn_usuarios_upd(integer, character varying, character varying, character varying, character varying, character varying, smallint); Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON FUNCTION fn_usuarios_upd(integer, character varying, character varying, character varying, character varying, character varying, smallint) IS 'Funcion que actualiza los registros de la tabla usuarios (exceptuando la clave)';
+
+
+--
+-- TOC entry 185 (class 1259 OID 74097)
+-- Name: sqc_hojadevida; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_hojadevida
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_hojadevida OWNER TO usrgrh;
+
+--
+-- TOC entry 2281 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: SEQUENCE sqc_hojadevida; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_hojadevida IS 'Secuencia de hoja de vida';
+
+
+--
+-- TOC entry 194 (class 1259 OID 74147)
+-- Name: hojadevida; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE hojadevida (
+    idhojadevida integer DEFAULT nextval('sqc_hojadevida'::regclass) NOT NULL,
+    idtipodedocumento smallint NOT NULL,
+    numerodocumento character varying(12) NOT NULL,
+    primerapellido character varying(50) NOT NULL,
+    segundoapellido character varying(50),
+    nombres character varying(100) NOT NULL,
+    idgenero smallint NOT NULL,
+    libretamilitar character varying(15),
+    distritolm character varying(4),
+    lugarnacimiento smallint NOT NULL,
+    lugarexpediciond smallint NOT NULL,
+    lugarresidencia smallint NOT NULL,
+    fechanacimiento date NOT NULL,
+    fechaexpediciond date NOT NULL,
+    idestadocivil smallint NOT NULL,
+    disponibilidadviaje boolean DEFAULT false NOT NULL,
+    direccion character varying(100) NOT NULL,
+    telefono character varying(25) NOT NULL,
+    correo character varying(100) NOT NULL,
+    foto character varying(250) NOT NULL
+);
+
+
+ALTER TABLE public.hojadevida OWNER TO usrgrh;
+
+--
+-- TOC entry 2282 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: TABLE hojadevida; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE hojadevida IS 'Hoja de vida';
+
+
+--
+-- TOC entry 2283 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.idhojadevida; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.idhojadevida IS 'Identificador unico de la hoja de vida';
+
+
+--
+-- TOC entry 2284 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.idtipodedocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.idtipodedocumento IS 'Identificador del tipo de documento';
+
+
+--
+-- TOC entry 2285 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.numerodocumento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.numerodocumento IS 'Numero de identificación de la persona';
+
+
+--
+-- TOC entry 2286 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.primerapellido; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.primerapellido IS 'Primer apellido';
+
+
+--
+-- TOC entry 2287 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.segundoapellido; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.segundoapellido IS 'Segundo apellido (no es obligatorio)';
+
+
+--
+-- TOC entry 2288 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.nombres; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.nombres IS 'Nombres de la persona';
+
+
+--
+-- TOC entry 2289 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.idgenero; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.idgenero IS 'Identificador del género de la persona';
+
+
+--
+-- TOC entry 2290 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.libretamilitar; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.libretamilitar IS 'numero de la libreta militar';
+
+
+--
+-- TOC entry 2291 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.distritolm; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.distritolm IS 'Numero del distrito de la libreta militar';
+
+
+--
+-- TOC entry 2292 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.lugarnacimiento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.lugarnacimiento IS 'Identificador del municipio del lugar de nacimiento';
+
+
+--
+-- TOC entry 2293 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.lugarexpediciond; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.lugarexpediciond IS 'Identificador del municipio del lugar de expedición del dcumento de identidad.';
+
+
+--
+-- TOC entry 2294 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.lugarresidencia; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.lugarresidencia IS 'Identificador del municipio del lugar de residencia';
+
+
+--
+-- TOC entry 2295 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.fechanacimiento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.fechanacimiento IS 'Fecha de nacimiento';
+
+
+--
+-- TOC entry 2296 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.fechaexpediciond; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.fechaexpediciond IS 'Fecha de expedición del documento de identidad';
+
+
+--
+-- TOC entry 2297 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.idestadocivil; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.idestadocivil IS 'Identificación del estado civil';
+
+
+--
+-- TOC entry 2298 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.disponibilidadviaje; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.disponibilidadviaje IS 'Está disponible para viajar';
+
+
+--
+-- TOC entry 2299 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.direccion; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.direccion IS 'Dirección de la persona';
+
+
+--
+-- TOC entry 2300 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.telefono; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.telefono IS 'Telefono de la persona';
+
+
+--
+-- TOC entry 2301 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.correo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.correo IS 'Correo electrónico';
+
+
+--
+-- TOC entry 2302 (class 0 OID 0)
+-- Dependencies: 194
+-- Name: COLUMN hojadevida.foto; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN hojadevida.foto IS 'Ubicación de la foto ';
+
+
+--
+-- TOC entry 188 (class 1259 OID 74110)
+-- Name: sqc_municipios; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_municipios
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_municipios OWNER TO usrgrh;
+
+--
+-- TOC entry 2303 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: SEQUENCE sqc_municipios; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_municipios IS 'Secuencia de Municipios';
+
+
+--
+-- TOC entry 191 (class 1259 OID 74124)
+-- Name: municipios; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE municipios (
+    idmunicipio smallint DEFAULT nextval('sqc_municipios'::regclass) NOT NULL,
+    iddepartamento smallint NOT NULL,
+    codigo character varying(3) NOT NULL,
+    nombre character varying(40) NOT NULL
+);
+
+
+ALTER TABLE public.municipios OWNER TO usrgrh;
+
+--
+-- TOC entry 2304 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: TABLE municipios; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE municipios IS 'Municipios de Colombia';
+
+
+--
+-- TOC entry 2305 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: COLUMN municipios.idmunicipio; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN municipios.idmunicipio IS 'Identificador único del municipio';
+
+
+--
+-- TOC entry 2306 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: COLUMN municipios.iddepartamento; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN municipios.iddepartamento IS 'Identificador del departamento del municipio';
+
+
+--
+-- TOC entry 2307 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: COLUMN municipios.codigo; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN municipios.codigo IS 'Código del municipio asignado por el DANE';
+
+
+--
+-- TOC entry 2308 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: COLUMN municipios.nombre; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON COLUMN municipios.nombre IS 'Nombre del municipio';
+
+
+--
+-- TOC entry 180 (class 1259 OID 74021)
+-- Name: objetosxperfil; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE objetosxperfil (
+    oxp_perfil smallint NOT NULL,
+    oxp_objeto character varying(15) NOT NULL,
+    oxp_insertar boolean DEFAULT false NOT NULL,
+    oxp_modificar boolean DEFAULT false NOT NULL,
+    oxp_borrar boolean DEFAULT false NOT NULL,
+    oxp_consultar boolean DEFAULT false NOT NULL
+);
+
+
+ALTER TABLE public.objetosxperfil OWNER TO usrgrh;
+
+--
+-- TOC entry 2309 (class 0 OID 0)
+-- Dependencies: 180
+-- Name: TABLE objetosxperfil; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE objetosxperfil IS 'Estos son los permisos que tendra cada perfil';
+
+
+--
+-- TOC entry 181 (class 1259 OID 74028)
+-- Name: prueba; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE prueba (
+    hija smallint
+);
+
+
+ALTER TABLE public.prueba OWNER TO usrgrh;
+
+--
+-- TOC entry 2310 (class 0 OID 0)
+-- Dependencies: 181
+-- Name: TABLE prueba; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE prueba IS 'Hola';
+
+
+--
+-- TOC entry 182 (class 1259 OID 74031)
+-- Name: sqc_estudiantes; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_estudiantes
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_estudiantes OWNER TO usrgrh;
+
+--
+-- TOC entry 2311 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: SEQUENCE sqc_estudiantes; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_estudiantes IS 'Secuencia del id unico del estudiante';
+
+
+--
+-- TOC entry 183 (class 1259 OID 74033)
+-- Name: sqc_usuarios; Type: SEQUENCE; Schema: public; Owner: usrgrh
+--
+
+CREATE SEQUENCE sqc_usuarios
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sqc_usuarios OWNER TO usrgrh;
+
+--
+-- TOC entry 2312 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: SEQUENCE sqc_usuarios; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON SEQUENCE sqc_usuarios IS 'Secuencia para el consecutivo de usuarios';
+
+
+--
+-- TOC entry 184 (class 1259 OID 74035)
+-- Name: usuarios; Type: TABLE; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+CREATE TABLE usuarios (
+    usu_id integer DEFAULT nextval('sqc_usuarios'::regclass) NOT NULL,
+    usu_codigo character varying(25) NOT NULL,
+    usu_nombres character varying(50) NOT NULL,
+    usu_apellidos character varying(50) NOT NULL,
+    usu_correo character varying(100) NOT NULL,
+    usu_identificacion character varying(12) NOT NULL,
+    usu_perfil smallint NOT NULL,
+    usu_clave character varying(32) DEFAULT md5('Clave123+'::text) NOT NULL,
+    usu_cambiarclave boolean DEFAULT true NOT NULL,
+    usu_fechacreacion timestamp without time zone DEFAULT now() NOT NULL,
+    usu_ultimoingreso timestamp without time zone DEFAULT now() NOT NULL,
+    usu_bloqueado boolean DEFAULT false NOT NULL,
+    usu_fechabloqueado timestamp without time zone,
+    usu_fechadesbloqueado timestamp without time zone
+);
+
+
+ALTER TABLE public.usuarios OWNER TO usrgrh;
+
+--
+-- TOC entry 2313 (class 0 OID 0)
+-- Dependencies: 184
+-- Name: TABLE usuarios; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TABLE usuarios IS 'Tabla que contiene los usuarios del sistema. La clave puede ser vacia ya que el metodo de autenticacion puede ser desde LDAP. Pero es necesaria ya que esta tabla es la que contiene los perfiles de los usuarios.';
+
+
+--
+-- TOC entry 2151 (class 0 OID 73952)
+-- Dependencies: 171
+-- Data for Name: clientes; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY clientes (idcliente, tipodocumento, numerodocumento, direccion, telefono, correoelectronico, responsable, consejo) FROM stdin;
+1	1	80005465	CRA 94 # 76-82	7583684	info@grouptic.co	ALEXYS LOZADA	SIN
+3	1	79123456	CRA 94 # 76-82	7583684	info@grouptic.co	ALEXYS LOZADA	SIN
+4	1	asdf	asdf	asdf	asdf@adf.com	asdf	asdf
+\.
+
+
+--
+-- TOC entry 2153 (class 0 OID 73962)
+-- Dependencies: 173
+-- Data for Name: configuracion; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY configuracion (idconfiguracion, parametro, valorparametro, activo) FROM stdin;
+2	AUTENTICACION	BD	t
+3	TIEMPOCREDENCIAL	30	t
+5	PRUEBA	ACTUALIZADO CORRECTAMENTE	f
+\.
+
+
+--
+-- TOC entry 2155 (class 0 OID 73975)
+-- Dependencies: 175
+-- Data for Name: credenciales; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY credenciales (cre_id, cre_idusuario, cre_nombre, cre_hostip, cre_hostnombre, cre_creacion, cre_ultimaaccion) FROM stdin;
+484	4	ALEXYS LOZADA	0:0:0:0:0:0:0:1	0:0:0:0:0:0:0:1	2014-04-18 19:50:00.924	2014-04-18 19:50:00.924
+485	4	ALEXYS LOZADA	192.168.1.2	192.168.1.2	2014-04-18 19:52:53.596	2014-04-18 19:52:53.596
+\.
+
+
+--
+-- TOC entry 2170 (class 0 OID 74114)
+-- Dependencies: 190
+-- Data for Name: departamentos; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY departamentos (iddepartamento, codigo, nombre) FROM stdin;
+1	05	ANTIOQUIA
+2	08	ATLANTICO
+4	13	BOLIVAR
+5	15	BOYACA
+6	17	CALDAS
+7	18	CAQUETA
+8	19	CAUCA
+9	20	CESAR
+10	23	CORDOBA
+11	25	CUNDINAMARCA
+12	27	CHOCO
+13	41	HUILA
+14	44	LA GUAJIRA
+15	47	MAGDALENA
+16	50	META
+17	52	NARIÑO
+18	54	N. DE SANTANDER
+19	63	QUINDIO
+20	66	RISARALDA
+21	68	SANTANDER
+22	70	SUCRE
+23	73	TOLIMA
+24	76	VALLE DEL CAUCA
+25	81	ARAUCA
+26	85	CASANARE
+27	86	PUTUMAYO
+28	88	SAN ANDRES
+29	91	AMAZONAS
+30	94	GUAINIA
+31	95	GUAVIARE
+32	97	VAUPES
+33	99	VICHADA
+3	11	BOGOTÁ
+\.
+
+
+--
+-- TOC entry 2173 (class 0 OID 74139)
+-- Dependencies: 193
+-- Data for Name: estadocivil; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY estadocivil (idestadocivil, abreviatura, nombre) FROM stdin;
+1	S	SOLTERO
+2	C	CASADO
+3	U	UNIÓN LIBRE
+4	D	DIVORCIADO
+\.
+
+
+--
+-- TOC entry 2167 (class 0 OID 74102)
+-- Dependencies: 187
+-- Data for Name: genero; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY genero (idgenero, sigla, genero) FROM stdin;
+1	M	MASCULINO
+2	F	FEMENINO
+\.
+
+
+--
+-- TOC entry 2174 (class 0 OID 74147)
+-- Dependencies: 194
+-- Data for Name: hojadevida; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY hojadevida (idhojadevida, idtipodedocumento, numerodocumento, primerapellido, segundoapellido, nombres, idgenero, libretamilitar, distritolm, lugarnacimiento, lugarexpediciond, lugarresidencia, fechanacimiento, fechaexpediciond, idestadocivil, disponibilidadviaje, direccion, telefono, correo, foto) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2171 (class 0 OID 74124)
+-- Dependencies: 191
+-- Data for Name: municipios; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY municipios (idmunicipio, iddepartamento, codigo, nombre) FROM stdin;
+2	1	001	MEDELLIN
+3	1	002	ABEJORRAL
+4	1	004	ABRIAQUI
+7	1	031	AMALFI
+8	1	034	ANDES
+9	1	036	ANGELOPOLIS
+10	1	038	ANGOSTURA
+11	1	040	ANORI
+12	1	042	SANTAFE DE ANTIOQUIA
+13	1	044	ANZA
+14	1	045	APARTADO
+15	1	051	ARBOLETES
+16	1	055	ARGELIA
+17	1	059	ARMENIA
+18	1	079	BARBOSA
+19	1	086	BELMIRA
+20	1	088	BELLO
+21	1	091	BETANIA
+22	1	093	BETULIA
+23	1	101	CIUDAD BOLIVAR
+24	1	107	BRICEÑO
+25	1	113	BURITICA
+26	1	120	CACERES
+27	1	125	CAICEDO
+28	1	129	CALDAS
+29	1	134	CAMPAMENTO
+30	1	138	CAÑASGORDAS
+31	1	142	CARACOLI
+32	1	145	CARAMANTA
+33	1	147	CAREPA
+34	1	148	EL CARMEN DE VIBORAL
+35	1	150	CAROLINA
+36	1	154	CAUCASIA
+37	1	172	CHIGORODO
+38	1	190	CISNEROS
+39	1	197	COCORNA
+40	1	206	CONCEPCION
+41	1	209	CONCORDIA
+42	1	212	COPACABANA
+43	1	234	DABEIBA
+44	1	237	DON MATIAS
+45	1	240	EBEJICO
+46	1	250	EL BAGRE
+47	1	264	ENTRERRIOS
+48	1	266	ENVIGADO
+49	1	282	FREDONIA
+50	1	284	FRONTINO
+51	1	306	GIRALDO
+52	1	308	GIRARDOTA
+53	1	310	GOMEZ PLATA
+54	1	313	GRANADA
+55	1	315	GUADALUPE
+56	1	318	GUARNE
+57	1	321	GUATAPE
+58	1	347	HELICONIA
+59	1	353	HISPANIA
+60	1	360	ITAGUI
+61	1	361	ITUANGO
+62	1	364	JARDIN
+63	1	368	JERICO
+64	1	376	LA CEJA
+65	1	380	LA ESTRELLA
+66	1	390	LA PINTADA
+67	1	400	LA UNION
+68	1	411	LIBORINA
+69	1	425	MACEO
+70	1	440	MARINILLA
+71	1	467	MONTEBELLO
+72	1	475	MURINDO
+73	1	480	MUTATA
+74	1	483	NARIÑO
+75	1	490	NECOCLI
+76	1	495	NECHI
+77	1	501	OLAYA
+78	1	541	PEÐOL
+79	1	543	PEQUE
+80	1	576	PUEBLORRICO
+81	1	579	PUERTO BERRIO
+82	1	585	PUERTO NARE
+83	1	591	PUERTO TRIUNFO
+84	1	604	REMEDIOS
+85	1	607	RETIRO
+86	1	615	RIONEGRO
+87	1	628	SABANALARGA
+88	1	631	SABANETA
+89	1	642	SALGAR
+90	1	647	SAN ANDRES DE CUERQUIA
+91	1	649	SAN CARLOS
+92	1	652	SAN FRANCISCO
+93	1	656	SAN JERONIMO
+94	1	658	SAN JOSE DE LA MONTAÑA
+95	1	659	SAN JUAN DE URABA
+96	1	660	SAN LUIS
+97	1	664	SAN PEDRO
+98	1	665	SAN PEDRO DE URABA
+99	1	667	SAN RAFAEL
+100	1	670	SAN ROQUE
+101	1	674	SAN VICENTE
+102	1	679	SANTA BARBARA
+103	1	686	SANTA ROSA DE OSOS
+104	1	690	SANTO DOMINGO
+105	1	697	EL SANTUARIO
+106	1	736	SEGOVIA
+107	1	756	SONSON
+108	1	761	SOPETRAN
+109	1	789	TAMESIS
+110	1	790	TARAZA
+111	1	792	TARSO
+112	1	809	TITIRIBI
+113	1	819	TOLEDO
+114	1	837	TURBO
+115	1	842	URAMITA
+116	1	847	URRAO
+117	1	854	VALDIVIA
+118	1	856	VALPARAISO
+119	1	858	VEGACHI
+120	1	861	VENECIA
+121	1	873	VIGIA DEL FUERTE
+122	1	885	YALI
+123	1	887	YARUMAL
+124	1	890	YOLOMBO
+125	1	893	YONDO
+126	1	895	ZARAGOZA
+127	2	001	BARRANQUILLA
+128	2	078	BARANOA
+129	2	137	CAMPO DE LA CRUZ
+130	2	141	CANDELARIA
+131	2	296	GALAPA
+132	2	372	JUAN DE ACOSTA
+133	2	421	LURUACO
+134	2	433	MALAMBO
+135	2	436	MANATI
+136	2	520	PALMAR DE VARELA
+137	2	549	PIOJO
+138	2	558	POLONUEVO
+139	2	560	PONEDERA
+140	2	573	PUERTO COLOMBIA
+141	2	606	REPELON
+142	2	634	SABANAGRANDE
+143	2	638	SABANALARGA
+144	2	675	SANTA LUCIA
+145	2	685	SANTO TOMAS
+146	2	758	SOLEDAD
+147	2	770	SUAN
+148	2	832	TUBARA
+149	2	849	USIACURI
+151	4	001	CARTAGENA
+152	4	006	ACHI
+153	4	030	ALTOS DEL ROSARIO
+154	4	042	ARENAL
+155	4	052	ARJONA
+156	4	062	ARROYOHONDO
+157	4	074	BARRANCO DE LOBA
+158	4	140	CALAMAR
+159	4	160	CANTAGALLO
+160	4	188	CICUCO
+161	4	212	CORDOBA
+162	4	222	CLEMENCIA
+163	4	244	EL CARMEN DE BOLIVAR
+164	4	248	EL GUAMO
+165	4	268	EL PEÑON
+166	4	300	HATILLO DE LOBA
+5	1	021	ALEJANDRÍA
+167	4	430	MAGANGUE
+168	4	433	MAHATES
+169	4	440	MARGARITA
+170	4	442	MARIA LA BAJA
+171	4	458	MONTECRISTO
+172	4	468	MOMPOS
+173	4	490	NOROSI
+174	4	473	MORALES
+175	4	549	PINILLOS
+176	4	580	REGIDOR
+177	4	600	RIO VIEJO
+178	4	620	SAN CRISTOBAL
+179	4	647	SAN ESTANISLAO
+180	4	650	SAN FERNANDO
+181	4	654	SAN JACINTO
+182	4	655	SAN JACINTO DEL CAUCA
+183	4	657	SAN JUAN NEPOMUCENO
+184	4	667	SAN MARTIN DE LOBA
+185	4	670	SAN PABLO
+186	4	673	SANTA CATALINA
+187	4	683	SANTA ROSA
+188	4	688	SANTA ROSA DEL SUR
+189	4	744	SIMITI
+190	4	760	SOPLAVIENTO
+191	4	780	TALAIGUA NUEVO
+192	4	810	TIQUISIO
+193	4	836	TURBACO
+194	4	838	TURBANA
+195	4	873	VILLANUEVA
+196	4	894	ZAMBRANO
+197	5	001	TUNJA
+198	5	022	ALMEIDA
+199	5	047	AQUITANIA
+200	5	051	ARCABUCO
+201	5	087	BELEN
+202	5	090	BERBEO
+203	5	092	BETEITIVA
+204	5	097	BOAVITA
+205	5	104	BOYACA
+206	5	106	BRICEÑO
+207	5	109	BUENAVISTA
+208	5	114	BUSBANZA
+209	5	131	CALDAS
+210	5	135	CAMPOHERMOSO
+211	5	162	CERINZA
+212	5	172	CHINAVITA
+213	5	176	CHIQUINQUIRA
+214	5	180	CHISCAS
+215	5	183	CHITA
+216	5	185	CHITARAQUE
+217	5	187	CHIVATA
+218	5	189	CIENEGA
+219	5	204	COMBITA
+220	5	212	COPER
+221	5	215	CORRALES
+222	5	218	COVARACHIA
+223	5	223	CUBARA
+224	5	224	CUCAITA
+225	5	226	CUITIVA
+226	5	232	CHIQUIZA
+227	5	236	CHIVOR
+228	5	238	DUITAMA
+229	5	244	EL COCUY
+230	5	248	EL ESPINO
+231	5	272	FIRAVITOBA
+232	5	276	FLORESTA
+233	5	293	GACHANTIVA
+234	5	296	GAMEZA
+235	5	299	GARAGOA
+236	5	317	GUACAMAYAS
+237	5	322	GUATEQUE
+238	5	325	GUAYATA
+239	5	332	GsICAN
+240	5	362	IZA
+241	5	367	JENESANO
+242	5	368	JERICO
+243	5	377	LABRANZAGRANDE
+244	5	380	LA CAPILLA
+245	5	401	LA VICTORIA
+246	5	403	LA UVITA
+247	5	407	VILLA DE LEYVA
+248	5	425	MACANAL
+249	5	442	MARIPI
+250	5	455	MIRAFLORES
+251	5	464	MONGUA
+252	5	466	MONGUI
+253	5	469	MONIQUIRA
+254	5	476	MOTAVITA
+255	5	480	MUZO
+256	5	491	NOBSA
+257	5	494	NUEVO COLON
+258	5	500	OICATA
+259	5	507	OTANCHE
+260	5	511	PACHAVITA
+261	5	514	PAEZ
+262	5	516	PAIPA
+263	5	518	PAJARITO
+264	5	522	PANQUEBA
+265	5	531	PAUNA
+266	5	533	PAYA
+267	5	537	PAZ DE RIO
+268	5	542	PESCA
+269	5	550	PISBA
+270	5	572	PUERTO BOYACA
+271	5	580	QUIPAMA
+272	5	599	RAMIRIQUI
+273	5	600	RAQUIRA
+274	5	621	RONDON
+275	5	632	SABOYA
+276	5	638	SACHICA
+277	5	646	SAMACA
+278	5	660	SAN EDUARDO
+279	5	664	SAN JOSE DE PARE
+280	5	667	SAN LUIS DE GACENO
+281	5	673	SAN MATEO
+282	5	676	SAN MIGUEL DE SEMA
+283	5	681	SAN PABLO DE BORBUR
+284	5	686	SANTANA
+285	5	690	SANTA MARIA
+286	5	693	SANTA ROSA DE VITERBO
+287	5	696	SANTA SOFIA
+288	5	720	SATIVANORTE
+289	5	723	SATIVASUR
+290	5	740	SIACHOQUE
+291	5	753	SOATA
+292	5	755	SOCOTA
+293	5	757	SOCHA
+294	5	759	SOGAMOSO
+295	5	761	SOMONDOCO
+296	5	762	SORA
+297	5	763	SOTAQUIRA
+298	5	764	SORACA
+299	5	774	SUSACON
+300	5	776	SUTAMARCHAN
+301	5	778	SUTATENZA
+302	5	790	TASCO
+303	5	798	TENZA
+304	5	804	TIBANA
+305	5	806	TIBASOSA
+306	5	808	TINJACA
+307	5	810	TIPACOQUE
+308	5	814	TOCA
+309	5	816	TOGsI
+310	5	820	TOPAGA
+311	5	822	TOTA
+312	5	832	TUNUNGUA
+313	5	835	TURMEQUE
+314	5	837	TUTA
+315	5	839	TUTAZA
+316	5	842	UMBITA
+317	5	861	VENTAQUEMADA
+318	5	879	VIRACACHA
+319	5	897	ZETAQUIRA
+320	6	001	MANIZALES
+321	6	013	AGUADAS
+322	6	042	ANSERMA
+323	6	050	ARANZAZU
+324	6	088	BELALCAZAR
+325	6	174	CHINCHINA
+326	6	272	FILADELFIA
+327	6	380	LA DORADA
+328	6	388	LA MERCED
+329	6	433	MANZANARES
+330	6	442	MARMATO
+331	6	444	MARQUETALIA
+332	6	446	MARULANDA
+333	6	486	NEIRA
+334	6	495	NORCASIA
+335	6	513	PACORA
+336	6	524	PALESTINA
+337	6	541	PENSILVANIA
+338	6	614	RIOSUCIO
+339	6	616	RISARALDA
+340	6	653	SALAMINA
+341	6	662	SAMANA
+342	6	665	SAN JOSE
+343	6	777	SUPIA
+344	6	867	VICTORIA
+345	6	873	VILLAMARIA
+346	6	877	VITERBO
+347	7	001	FLORENCIA
+348	7	029	ALBANIA
+349	7	094	BELEN DE LOS ANDAQUIES
+350	7	150	CARTAGENA DEL CHAIRA
+351	7	205	CURILLO
+352	7	247	EL DONCELLO
+353	7	256	EL PAUJIL
+354	7	410	LA MONTAÑITA
+355	7	460	MILAN
+356	7	479	MORELIA
+357	7	592	PUERTO RICO
+358	7	610	SAN JOSE DEL FRAGUA
+359	7	753	SAN VICENTE DEL CAGUAN
+360	7	756	SOLANO
+361	7	785	SOLITA
+362	7	860	VALPARAISO
+363	8	001	POPAYAN
+364	8	022	ALMAGUER
+365	8	050	ARGELIA
+366	8	075	BALBOA
+367	8	100	BOLIVAR
+368	8	110	BUENOS AIRES
+369	8	130	CAJIBIO
+370	8	137	CALDONO
+371	8	142	CALOTO
+372	8	212	CORINTO
+373	8	256	EL TAMBO
+374	8	290	FLORENCIA
+375	8	300	GUACHENE
+376	8	318	GUAPI
+377	8	355	INZA
+378	8	364	JAMBALO
+379	8	392	LA SIERRA
+380	8	397	LA VEGA
+381	8	418	LOPEZ
+382	8	450	MERCADERES
+383	8	455	MIRANDA
+384	8	473	MORALES
+385	8	513	PADILLA
+386	8	517	PAEZ
+387	8	532	PATIA
+388	8	533	PIAMONTE
+389	8	548	PIENDAMO
+390	8	573	PUERTO TEJADA
+391	8	585	PURACE
+392	8	622	ROSAS
+393	8	693	SAN SEBASTIAN
+394	8	698	SANTANDER DE QUILICHAO
+395	8	701	SANTA ROSA
+396	8	743	SILVIA
+397	8	760	SOTARA
+398	8	780	SUAREZ
+399	8	785	SUCRE
+400	8	807	TIMBIO
+401	8	809	TIMBIQUI
+402	8	821	TORIBIO
+403	8	824	TOTORO
+404	8	845	VILLA RICA
+405	9	001	VALLEDUPAR
+406	9	011	AGUACHICA
+407	9	013	AGUSTIN CODAZZI
+408	9	032	ASTREA
+409	9	045	BECERRIL
+410	9	060	BOSCONIA
+411	9	175	CHIMICHAGUA
+412	9	178	CHIRIGUANA
+413	9	228	CURUMANI
+414	9	238	EL COPEY
+415	9	250	EL PASO
+416	9	295	GAMARRA
+417	9	310	GONZALEZ
+418	9	383	LA GLORIA
+419	9	400	LA JAGUA DE IBIRICO
+420	9	443	MANAURE
+421	9	517	PAILITAS
+422	9	550	PELAYA
+423	9	570	PUEBLO BELLO
+424	9	614	RIO DE ORO
+425	9	621	LA PAZ
+426	9	710	SAN ALBERTO
+427	9	750	SAN DIEGO
+428	9	770	SAN MARTIN
+429	9	787	TAMALAMEQUE
+430	10	001	MONTERIA
+431	10	068	AYAPEL
+432	10	079	BUENAVISTA
+433	10	090	CANALETE
+434	10	162	CERETE
+435	10	168	CHIMA
+436	10	182	CHINU
+437	10	189	CIENAGA DE ORO
+438	10	300	COTORRA
+439	10	350	LA APARTADA
+440	10	417	LORICA
+441	10	419	LOS CORDOBAS
+442	10	464	MOMIL
+443	10	466	MONTELIBANO
+444	10	500	MOÑITOS
+445	10	555	PLANETA RICA
+446	10	570	PUEBLO NUEVO
+447	10	574	PUERTO ESCONDIDO
+448	10	580	PUERTO LIBERTADOR
+449	10	586	PURISIMA
+450	10	660	SAHAGUN
+451	10	670	SAN ANDRES SOTAVENTO
+452	10	672	SAN ANTERO
+453	10	675	SAN BERNARDO DEL VIENTO
+454	10	678	SAN CARLOS
+455	10	686	SAN PELAYO
+456	10	807	TIERRALTA
+457	10	855	VALENCIA
+458	11	001	AGUA DE DIOS
+459	11	019	ALBAN
+460	11	035	ANAPOIMA
+461	11	040	ANOLAIMA
+462	11	053	ARBELAEZ
+463	11	086	BELTRAN
+464	11	095	BITUIMA
+465	11	099	BOJACA
+466	11	120	CABRERA
+467	11	123	CACHIPAY
+468	11	126	CAJICA
+469	11	148	CAPARRAPI
+470	11	151	CAQUEZA
+471	11	154	CARMEN DE CARUPA
+472	11	168	CHAGUANI
+473	11	175	CHIA
+474	11	178	CHIPAQUE
+475	11	181	CHOACHI
+476	11	183	CHOCONTA
+477	11	200	COGUA
+478	11	214	COTA
+479	11	224	CUCUNUBA
+480	11	245	EL COLEGIO
+481	11	258	EL PEÑON
+482	11	260	EL ROSAL
+483	11	269	FACATATIVA
+484	11	279	FOMEQUE
+485	11	281	FOSCA
+486	11	286	FUNZA
+487	11	288	FUQUENE
+488	11	290	FUSAGASUGA
+489	11	293	GACHALA
+490	11	295	GACHANCIPA
+491	11	297	GACHETA
+492	11	299	GAMA
+493	11	307	GIRARDOT
+494	11	312	GRANADA
+495	11	317	GUACHETA
+496	11	320	GUADUAS
+497	11	322	GUASCA
+498	11	324	GUATAQUI
+499	11	326	GUATAVITA
+500	11	328	GUAYABAL DE SIQUIMA
+501	11	335	GUAYABETAL
+502	11	339	GUTIERREZ
+503	11	368	JERUSALEN
+504	11	372	JUNIN
+505	11	377	LA CALERA
+506	11	386	LA MESA
+507	11	394	LA PALMA
+508	11	398	LA PEÑA
+509	11	402	LA VEGA
+510	11	407	LENGUAZAQUE
+511	11	426	MACHETA
+512	11	430	MADRID
+513	11	436	MANTA
+514	11	438	MEDINA
+515	11	473	MOSQUERA
+516	11	483	NARIÑO
+517	11	486	NEMOCON
+518	11	488	NILO
+519	11	489	NIMAIMA
+520	11	491	NOCAIMA
+521	11	506	VENECIA
+522	11	513	PACHO
+523	11	518	PAIME
+524	11	524	PANDI
+525	11	530	PARATEBUENO
+526	11	535	PASCA
+527	11	572	PUERTO SALGAR
+528	11	580	PULI
+529	11	592	QUEBRADANEGRA
+530	11	594	QUETAME
+531	11	596	QUIPILE
+532	11	599	APULO
+533	11	612	RICAURTE
+534	11	645	SAN ANTONIO DEL TEQUENDAMA
+535	11	649	SAN BERNARDO
+536	11	653	SAN CAYETANO
+537	11	658	SAN FRANCISCO
+538	11	662	SAN JUAN DE RIO SECO
+539	11	718	SASAIMA
+540	11	736	SESQUILE
+541	11	740	SIBATE
+542	11	743	SILVANIA
+543	11	745	SIMIJACA
+544	11	754	SOACHA
+545	11	758	SOPO
+546	11	769	SUBACHOQUE
+547	11	772	SUESCA
+548	11	777	SUPATA
+549	11	779	SUSA
+550	11	781	SUTATAUSA
+551	11	785	TABIO
+552	11	793	TAUSA
+553	11	797	TENA
+554	11	799	TENJO
+555	11	805	TIBACUY
+556	11	807	TIBIRITA
+557	11	815	TOCAIMA
+558	11	817	TOCANCIPA
+559	11	823	TOPAIPI
+560	11	839	UBALA
+561	11	841	UBAQUE
+562	11	843	VILLA DE SAN DIEGO DE UBATE
+563	11	845	UNE
+564	11	851	UTICA
+565	11	862	VERGARA
+566	11	867	VIANI
+567	11	871	VILLAGOMEZ
+568	11	873	VILLAPINZON
+569	11	875	VILLETA
+570	11	878	VIOTA
+571	11	885	YACOPI
+572	11	898	ZIPACON
+573	11	899	ZIPAQUIRA
+574	12	001	QUIBDO
+575	12	006	ACANDI
+576	12	025	ALTO BAUDO
+577	12	050	ATRATO
+578	12	073	BAGADO
+579	12	075	BAHIA SOLANO
+580	12	077	BAJO BAUDO
+581	12	099	BOJAYA
+582	12	135	EL CANTON DEL SAN PABLO
+583	12	150	CARMEN DEL DARIEN
+584	12	160	CERTEGUI
+585	12	205	CONDOTO
+586	12	245	EL CARMEN DE ATRATO
+587	12	250	EL LITORAL DEL SAN JUAN
+588	12	361	ISTMINA
+589	12	372	JURADO
+590	12	413	LLORO
+591	12	425	MEDIO ATRATO
+592	12	430	MEDIO BAUDO
+593	12	450	MEDIO SAN JUAN
+594	12	491	NOVITA
+595	12	495	NUQUI
+596	12	580	RIO IRO
+597	12	600	RIO QUITO
+598	12	615	RIOSUCIO
+599	12	660	SAN JOSE DEL PALMAR
+600	12	745	SIPI
+601	12	787	TADO
+602	12	800	UNGUIA
+603	12	810	UNION PANAMERICANA
+604	13	001	NEIVA
+605	13	006	ACEVEDO
+606	13	013	AGRADO
+607	13	016	AIPE
+608	13	020	ALGECIRAS
+609	13	026	ALTAMIRA
+610	13	078	BARAYA
+611	13	132	CAMPOALEGRE
+612	13	206	COLOMBIA
+613	13	244	ELIAS
+614	13	298	GARZON
+615	13	306	GIGANTE
+616	13	319	GUADALUPE
+617	13	349	HOBO
+618	13	357	IQUIRA
+619	13	359	ISNOS
+620	13	378	LA ARGENTINA
+621	13	396	LA PLATA
+622	13	483	NATAGA
+623	13	503	OPORAPA
+624	13	518	PAICOL
+625	13	524	PALERMO
+626	13	530	PALESTINA
+627	13	548	PITAL
+628	13	551	PITALITO
+629	13	615	RIVERA
+630	13	660	SALADOBLANCO
+631	13	668	SAN AGUSTIN
+632	13	676	SANTA MARIA
+633	13	770	SUAZA
+634	13	791	TARQUI
+635	13	797	TESALIA
+636	13	799	TELLO
+637	13	801	TERUEL
+638	13	807	TIMANA
+639	13	872	VILLAVIEJA
+640	13	885	YAGUARA
+641	14	001	RIOHACHA
+642	14	035	ALBANIA
+643	14	078	BARRANCAS
+644	14	090	DIBULLA
+645	14	098	DISTRACCION
+646	14	110	EL MOLINO
+647	14	279	FONSECA
+648	14	378	HATONUEVO
+649	14	420	LA JAGUA DEL PILAR
+650	14	430	MAICAO
+651	14	560	MANAURE
+652	14	650	SAN JUAN DEL CESAR
+653	14	847	URIBIA
+654	14	855	URUMITA
+655	14	874	VILLANUEVA
+656	15	001	SANTA MARTA
+657	15	030	ALGARROBO
+658	15	053	ARACATACA
+659	15	058	ARIGUANI
+660	15	161	CERRO SAN ANTONIO
+661	15	170	CHIBOLO
+662	15	189	CIENAGA
+663	15	205	CONCORDIA
+664	15	245	EL BANCO
+665	15	258	EL PIÑON
+666	15	268	EL RETEN
+667	15	288	FUNDACION
+668	15	318	GUAMAL
+669	15	460	NUEVA GRANADA
+670	15	541	PEDRAZA
+671	15	545	PIJIÑO DEL CARMEN
+672	15	551	PIVIJAY
+673	15	555	PLATO
+674	15	570	PUEBLOVIEJO
+675	15	605	REMOLINO
+676	15	660	SABANAS DE SAN ANGEL
+677	15	675	SALAMINA
+678	15	692	SAN SEBASTIAN DE BUENAVISTA
+679	15	703	SAN ZENON
+680	15	707	SANTA ANA
+681	15	720	SANTA BARBARA DE PINTO
+682	15	745	SITIONUEVO
+683	15	798	TENERIFE
+684	15	960	ZAPAYAN
+685	15	980	ZONA BANANERA
+686	16	001	VILLAVICENCIO
+687	16	006	ACACIAS
+688	16	110	BARRANCA DE UPIA
+689	16	124	CABUYARO
+690	16	150	CASTILLA LA NUEVA
+691	16	223	CUBARRAL
+692	16	226	CUMARAL
+693	16	245	EL CALVARIO
+694	16	251	EL CASTILLO
+695	16	270	EL DORADO
+696	16	287	FUENTE DE ORO
+697	16	313	GRANADA
+698	16	318	GUAMAL
+699	16	325	MAPIRIPAN
+700	16	330	MESETAS
+701	16	350	LA MACARENA
+702	16	370	URIBE
+703	16	400	LEJANIAS
+704	16	450	PUERTO CONCORDIA
+705	16	568	PUERTO GAITAN
+706	16	573	PUERTO LOPEZ
+707	16	577	PUERTO LLERAS
+708	16	590	PUERTO RICO
+709	16	606	RESTREPO
+710	16	680	SAN CARLOS DE GUAROA
+711	16	683	SAN JUAN DE ARAMA
+712	16	686	SAN JUANITO
+713	16	689	SAN MARTIN
+714	16	711	VISTAHERMOSA
+715	17	001	PASTO
+716	17	019	ALBAN
+717	17	022	ALDANA
+718	17	036	ANCUYA
+719	17	051	ARBOLEDA
+720	17	079	BARBACOAS
+721	17	083	BELEN
+722	17	110	BUESACO
+723	17	203	COLON
+724	17	207	CONSACA
+725	17	210	CONTADERO
+726	17	215	CORDOBA
+727	17	224	CUASPUD
+728	17	227	CUMBAL
+729	17	233	CUMBITARA
+730	17	240	CHACHAGsI
+731	17	250	EL CHARCO
+732	17	254	EL PEÑOL
+733	17	256	EL ROSARIO
+734	17	258	EL TABLON DE GOMEZ
+735	17	260	EL TAMBO
+736	17	287	FUNES
+737	17	317	GUACHUCAL
+738	17	320	GUAITARILLA
+739	17	323	GUALMATAN
+740	17	352	ILES
+741	17	354	IMUES
+742	17	356	IPIALES
+743	17	378	LA CRUZ
+744	17	381	LA FLORIDA
+745	17	385	LA LLANADA
+746	17	390	LA TOLA
+747	17	399	LA UNION
+748	17	405	LEIVA
+749	17	411	LINARES
+750	17	418	LOS ANDES
+751	17	427	MAGsI
+752	17	435	MALLAMA
+753	17	473	MOSQUERA
+754	17	480	NARIÑO
+755	17	490	OLAYA HERRERA
+756	17	506	OSPINA
+757	17	520	FRANCISCO PIZARRO
+758	17	540	POLICARPA
+759	17	560	POTOSI
+760	17	565	PROVIDENCIA
+761	17	573	PUERRES
+762	17	585	PUPIALES
+763	17	612	RICAURTE
+764	17	621	ROBERTO PAYAN
+765	17	678	SAMANIEGO
+766	17	683	SANDONA
+767	17	685	SAN BERNARDO
+768	17	687	SAN LORENZO
+769	17	693	SAN PABLO
+770	17	694	SAN PEDRO DE CARTAGO
+771	17	696	SANTA BARBARA
+772	17	699	SANTACRUZ
+773	17	720	SAPUYES
+774	17	786	TAMINANGO
+775	17	788	TANGUA
+776	17	835	SAN ANDRES DE TUMACO
+777	17	838	TUQUERRES
+778	17	885	YACUANQUER
+779	18	001	CUCUTA
+780	18	003	ABREGO
+781	18	051	ARBOLEDAS
+782	18	099	BOCHALEMA
+783	18	109	BUCARASICA
+784	18	125	CACOTA
+785	18	128	CACHIRA
+786	18	172	CHINACOTA
+787	18	174	CHITAGA
+788	18	206	CONVENCION
+789	18	223	CUCUTILLA
+790	18	239	DURANIA
+791	18	245	EL CARMEN
+792	18	250	EL TARRA
+793	18	261	EL ZULIA
+794	18	313	GRAMALOTE
+795	18	344	HACARI
+796	18	347	HERRAN
+797	18	377	LABATECA
+798	18	385	LA ESPERANZA
+799	18	398	LA PLAYA
+800	18	405	LOS PATIOS
+801	18	418	LOURDES
+802	18	480	MUTISCUA
+803	18	498	OCAÑA
+804	18	518	PAMPLONA
+805	18	520	PAMPLONITA
+806	18	553	PUERTO SANTANDER
+807	18	599	RAGONVALIA
+808	18	660	SALAZAR
+809	18	670	SAN CALIXTO
+810	18	673	SAN CAYETANO
+811	18	680	SANTIAGO
+812	18	720	SARDINATA
+813	18	743	SILOS
+814	18	800	TEORAMA
+815	18	810	TIBU
+816	18	820	TOLEDO
+817	18	871	VILLA CARO
+818	18	874	VILLA DEL ROSARIO
+819	19	001	ARMENIA
+820	19	111	BUENAVISTA
+821	19	130	CALARCA
+822	19	190	CIRCASIA
+823	19	212	CORDOBA
+824	19	272	FILANDIA
+825	19	302	GENOVA
+826	19	401	LA TEBAIDA
+827	19	470	MONTENEGRO
+828	19	548	PIJAO
+829	19	594	QUIMBAYA
+830	19	690	SALENTO
+831	20	001	PEREIRA
+832	20	045	APIA
+833	20	075	BALBOA
+834	20	088	BELEN DE UMBRIA
+835	20	170	DOSQUEBRADAS
+836	20	318	GUATICA
+837	20	383	LA CELIA
+838	20	400	LA VIRGINIA
+839	20	440	MARSELLA
+840	20	456	MISTRATO
+841	20	572	PUEBLO RICO
+842	20	594	QUINCHIA
+843	20	682	SANTA ROSA DE CABAL
+844	20	687	SANTUARIO
+845	21	001	BUCARAMANGA
+846	21	013	AGUADA
+847	21	020	ALBANIA
+848	21	051	ARATOCA
+849	21	077	BARBOSA
+850	21	079	BARICHARA
+851	21	081	BARRANCABERMEJA
+852	21	092	BETULIA
+853	21	101	BOLIVAR
+854	21	121	CABRERA
+855	21	132	CALIFORNIA
+856	21	147	CAPITANEJO
+857	21	152	CARCASI
+858	21	160	CEPITA
+859	21	162	CERRITO
+860	21	167	CHARALA
+861	21	169	CHARTA
+862	21	176	CHIMA
+863	21	179	CHIPATA
+864	21	190	CIMITARRA
+865	21	207	CONCEPCION
+866	21	209	CONFINES
+867	21	211	CONTRATACION
+868	21	217	COROMORO
+869	21	229	CURITI
+870	21	235	EL CARMEN DE CHUCURI
+871	21	245	EL GUACAMAYO
+872	21	250	EL PEÑON
+873	21	255	EL PLAYON
+874	21	264	ENCINO
+875	21	266	ENCISO
+876	21	271	FLORIAN
+877	21	276	FLORIDABLANCA
+878	21	296	GALAN
+879	21	298	GAMBITA
+880	21	307	GIRON
+881	21	318	GUACA
+882	21	320	GUADALUPE
+883	21	322	GUAPOTA
+884	21	324	GUAVATA
+885	21	327	GsEPSA
+886	21	344	HATO
+887	21	368	JESUS MARIA
+888	21	370	JORDAN
+889	21	377	LA BELLEZA
+890	21	385	LANDAZURI
+891	21	397	LA PAZ
+892	21	406	LEBRIJA
+893	21	418	LOS SANTOS
+894	21	425	MACARAVITA
+895	21	432	MALAGA
+896	21	444	MATANZA
+897	21	464	MOGOTES
+898	21	468	MOLAGAVITA
+899	21	498	OCAMONTE
+900	21	500	OIBA
+901	21	502	ONZAGA
+902	21	522	PALMAR
+903	21	524	PALMAS DEL SOCORRO
+904	21	533	PARAMO
+905	21	547	PIEDECUESTA
+906	21	549	PINCHOTE
+907	21	572	PUENTE NACIONAL
+908	21	573	PUERTO PARRA
+909	21	575	PUERTO WILCHES
+910	21	615	RIONEGRO
+911	21	655	SABANA DE TORRES
+912	21	669	SAN ANDRES
+913	21	673	SAN BENITO
+914	21	679	SAN GIL
+915	21	682	SAN JOAQUIN
+916	21	684	SAN JOSE DE MIRANDA
+917	21	686	SAN MIGUEL
+918	21	689	SAN VICENTE DE CHUCURI
+919	21	705	SANTA BARBARA
+920	21	720	SANTA HELENA DEL OPON
+921	21	745	SIMACOTA
+922	21	755	SOCORRO
+923	21	770	SUAITA
+924	21	773	SUCRE
+925	21	780	SURATA
+926	21	820	TONA
+927	21	855	VALLE DE SAN JOSE
+928	21	861	VELEZ
+929	21	867	VETAS
+930	21	872	VILLANUEVA
+931	21	895	ZAPATOCA
+932	22	001	SINCELEJO
+933	22	110	BUENAVISTA
+934	22	124	CAIMITO
+935	22	204	COLOSO
+936	22	215	COROZAL
+937	22	221	COVEÑAS
+938	22	230	CHALAN
+939	22	233	EL ROBLE
+940	22	235	GALERAS
+941	22	265	GUARANDA
+942	22	400	LA UNION
+943	22	418	LOS PALMITOS
+944	22	429	MAJAGUAL
+945	22	473	MORROA
+946	22	508	OVEJAS
+947	22	523	PALMITO
+948	22	670	SAMPUES
+949	22	678	SAN BENITO ABAD
+950	22	702	SAN JUAN DE BETULIA
+951	22	708	SAN MARCOS
+952	22	713	SAN ONOFRE
+953	22	717	SAN PEDRO
+954	22	742	SAN LUIS DE SINCE
+955	22	771	SUCRE
+956	22	820	SANTIAGO DE TOLU
+957	22	823	TOLU VIEJO
+958	23	001	IBAGUE
+959	23	024	ALPUJARRA
+960	23	026	ALVARADO
+961	23	030	AMBALEMA
+962	23	043	ANZOATEGUI
+963	23	055	ARMERO
+964	23	067	ATACO
+965	23	124	CAJAMARCA
+966	23	148	CARMEN DE APICALA
+967	23	152	CASABIANCA
+968	23	168	CHAPARRAL
+969	23	200	COELLO
+970	23	217	COYAIMA
+971	23	226	CUNDAY
+972	23	236	DOLORES
+973	23	268	ESPINAL
+974	23	270	FALAN
+975	23	275	FLANDES
+976	23	283	FRESNO
+977	23	319	GUAMO
+978	23	347	HERVEO
+979	23	349	HONDA
+980	23	352	ICONONZO
+981	23	408	LERIDA
+982	23	411	LIBANO
+983	23	443	MARIQUITA
+984	23	449	MELGAR
+985	23	461	MURILLO
+986	23	483	NATAGAIMA
+987	23	504	ORTEGA
+988	23	520	PALOCABILDO
+989	23	547	PIEDRAS
+990	23	555	PLANADAS
+991	23	563	PRADO
+992	23	585	PURIFICACION
+993	23	616	RIOBLANCO
+994	23	622	RONCESVALLES
+995	23	624	ROVIRA
+996	23	671	SALDAÑA
+997	23	675	SAN ANTONIO
+998	23	678	SAN LUIS
+999	23	686	SANTA ISABEL
+1000	23	770	SUAREZ
+1001	23	854	VALLE DE SAN JUAN
+1002	23	861	VENADILLO
+1003	23	870	VILLAHERMOSA
+1004	23	873	VILLARRICA
+1005	24	001	CALI
+1006	24	020	ALCALA
+1007	24	036	ANDALUCIA
+1008	24	041	ANSERMANUEVO
+1009	24	054	ARGELIA
+1010	24	100	BOLIVAR
+1011	24	109	BUENAVENTURA
+1012	24	111	GUADALAJARA DE BUGA
+1013	24	113	BUGALAGRANDE
+1014	24	122	CAICEDONIA
+1015	24	126	CALIMA
+1016	24	130	CANDELARIA
+1017	24	147	CARTAGO
+1018	24	233	DAGUA
+1019	24	243	EL AGUILA
+1020	24	246	EL CAIRO
+1021	24	248	EL CERRITO
+1022	24	250	EL DOVIO
+1023	24	275	FLORIDA
+1024	24	306	GINEBRA
+1025	24	318	GUACARI
+1026	24	364	JAMUNDI
+1027	24	377	LA CUMBRE
+1028	24	400	LA UNION
+1029	24	403	LA VICTORIA
+1030	24	497	OBANDO
+1031	24	520	PALMIRA
+1032	24	563	PRADERA
+1033	24	606	RESTREPO
+1034	24	616	RIOFRIO
+1035	24	622	ROLDANILLO
+1036	24	670	SAN PEDRO
+1037	24	736	SEVILLA
+1038	24	823	TORO
+1039	24	828	TRUJILLO
+1040	24	834	TULUA
+1041	24	845	ULLOA
+1042	24	863	VERSALLES
+1043	24	869	VIJES
+1044	24	890	YOTOCO
+1045	24	892	YUMBO
+1046	24	895	ZARZAL
+1047	25	001	ARAUCA
+1048	25	065	ARAUQUITA
+1049	25	220	CRAVO NORTE
+1050	25	300	FORTUL
+1051	25	591	PUERTO RONDON
+1052	25	736	SARAVENA
+1053	25	794	TAME
+1054	26	001	YOPAL
+1055	26	010	AGUAZUL
+1056	26	015	CHAMEZA
+1057	26	125	HATO COROZAL
+1058	26	136	LA SALINA
+1059	26	139	MANI
+1060	26	162	MONTERREY
+1061	26	225	NUNCHIA
+1062	26	230	OROCUE
+1063	26	250	PAZ DE ARIPORO
+1064	26	263	PORE
+1065	26	279	RECETOR
+1066	26	300	SABANALARGA
+1067	26	315	SACAMA
+1068	26	325	SAN LUIS DE PALENQUE
+1069	26	400	TAMARA
+1070	26	410	TAURAMENA
+1071	26	430	TRINIDAD
+1072	26	440	VILLANUEVA
+1073	27	001	MOCOA
+1074	27	219	COLON
+1075	27	320	ORITO
+1076	27	568	PUERTO ASIS
+1077	27	569	PUERTO CAICEDO
+1078	27	571	PUERTO GUZMAN
+1079	27	573	LEGUIZAMO
+1080	27	749	SIBUNDOY
+1081	27	755	SAN FRANCISCO
+1082	27	757	SAN MIGUEL
+1083	27	760	SANTIAGO
+1084	27	865	VALLE DEL GUAMUEZ
+1085	27	885	VILLAGARZON
+1086	28	001	SAN ANDRES
+1087	28	564	PROVIDENCIA
+1088	29	001	LETICIA
+1089	29	263	EL ENCANTO
+1090	29	405	LA CHORRERA
+1091	29	407	LA PEDRERA
+1092	29	430	LA VICTORIA
+1093	29	460	MIRITI - PARANA
+1094	29	530	PUERTO ALEGRIA
+1095	29	536	PUERTO ARICA
+1096	29	540	PUERTO NARIÑO
+1097	29	669	PUERTO SANTANDER
+1098	29	798	TARAPACA
+1099	30	001	INIRIDA
+1100	30	343	BARRANCO MINAS
+1101	30	663	MAPIRIPANA
+1102	30	883	SAN FELIPE
+1103	30	884	PUERTO COLOMBIA
+1104	30	885	LA GUADALUPE
+1105	30	886	CACAHUAL
+1106	30	887	PANA PANA
+1107	30	888	MORICHAL
+1108	31	001	SAN JOSE DEL GUAVIARE
+1109	31	015	CALAMAR
+1110	31	025	EL RETORNO
+1111	31	200	MIRAFLORES
+1112	32	001	MITU
+1113	32	161	CARURU
+1114	32	511	PACOA
+1115	32	666	TARAIRA
+1116	32	777	PAPUNAUA
+1117	32	889	YAVARATE
+1118	33	001	PUERTO CARREÑO
+1119	33	524	LA PRIMAVERA
+1120	33	624	SANTA ROSALIA
+1121	33	773	CUMARIBO
+150	3	001	BOGOTÁ D.C.
+1122	1	030	AMAGA
+1123	3	B01	CHAPINERO
+\.
+
+
+--
+-- TOC entry 2156 (class 0 OID 73986)
+-- Dependencies: 176
+-- Data for Name: objetos; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY objetos (obj_codigo, obj_nombre, obj_descripcion, obj_activo) FROM stdin;
+SEGPER	PERFILES DEL SISTEMA	PERFILES DEL SISTEMA	t
+SEGUSU	USUARIOS DEL SISTEMA	USUARIOS DEL SISTEMA	t
+CONFIG	CONFIGURACION DEL SISTEMA	PERMITE LA CONFIGURACION DEL SISTEMA	t
+PARTDO	TIPOS DE DOCUMENTOS	TIPOS DE DOCUMENTOS - PARAMETROS	t
+PARCLI	CLIENTES	PARAMETRIZACION DE CLIENTES	t
+PARDEP	DEPARTAMENTOS DE COLOMBIA	DEPARTAMENTOS DE COLOMBIA	t
+PARMUN	MUNICIPIOS	MUNICIPIOS DE COLOMBIA	t
+PERGEN	GÉNEROS	GÉNEROS	t
+PARGEN	GÉNEROS	GÉNEROS	t
+PARESC	ESTADO CIVIL	ESTADO CIVIL	t
+NEGHDV	HOJA DE VIDA	HOJA DE VIDA	t
+\.
+
+
+--
+-- TOC entry 2160 (class 0 OID 74021)
+-- Dependencies: 180
+-- Data for Name: objetosxperfil; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY objetosxperfil (oxp_perfil, oxp_objeto, oxp_insertar, oxp_modificar, oxp_borrar, oxp_consultar) FROM stdin;
+3	SEGUSU	f	f	f	f
+1	CONFIG	f	f	f	f
+2	CONFIG	f	f	f	f
+5	CONFIG	f	f	f	f
+7	CONFIG	f	f	f	f
+3	CONFIG	f	f	f	f
+3	SEGPER	t	f	f	f
+4	SEGPER	f	f	f	f
+4	SEGUSU	f	f	f	f
+4	CONFIG	f	f	f	f
+6	SEGPER	f	f	f	f
+6	SEGUSU	f	f	f	f
+6	CONFIG	f	f	f	f
+8	SEGPER	f	f	f	f
+8	SEGUSU	f	f	f	f
+8	CONFIG	f	f	f	f
+9	SEGPER	f	f	f	f
+9	SEGUSU	f	f	f	f
+9	CONFIG	f	f	f	f
+10	SEGPER	f	f	f	f
+10	SEGUSU	f	f	f	f
+10	CONFIG	f	f	f	f
+11	SEGPER	f	f	f	f
+11	SEGUSU	f	f	f	f
+11	CONFIG	f	f	f	f
+2	SEGPER	t	t	f	t
+2	PARTDO	f	f	f	f
+5	PARTDO	f	f	f	f
+7	PARTDO	f	f	f	f
+3	PARTDO	f	f	f	f
+4	PARTDO	f	f	f	f
+6	PARTDO	f	f	f	f
+8	PARTDO	f	f	f	f
+9	PARTDO	f	f	f	f
+10	PARTDO	f	f	f	f
+11	PARTDO	f	f	f	t
+1	PARTDO	t	t	t	t
+2	PARCLI	f	f	f	f
+5	PARCLI	f	f	f	f
+7	PARCLI	f	f	f	f
+3	PARCLI	f	f	f	f
+4	PARCLI	f	f	f	f
+6	PARCLI	f	f	f	f
+8	PARCLI	f	f	f	f
+9	PARCLI	f	f	f	f
+10	PARCLI	f	f	f	f
+11	PARCLI	f	f	f	f
+1	PARCLI	t	f	f	t
+2	PARDEP	f	f	f	f
+5	PARDEP	f	f	f	f
+7	PARDEP	f	f	f	f
+3	PARDEP	f	f	f	f
+4	PARDEP	f	f	f	f
+6	PARDEP	f	f	f	f
+8	PARDEP	f	f	f	f
+9	PARDEP	f	f	f	f
+10	PARDEP	f	f	f	f
+11	PARDEP	f	f	f	f
+2	PARMUN	f	f	f	f
+5	PARMUN	f	f	f	f
+7	PARMUN	f	f	f	f
+3	PARMUN	f	f	f	f
+4	PARMUN	f	f	f	f
+6	PARMUN	f	f	f	f
+8	PARMUN	f	f	f	f
+9	PARMUN	f	f	f	f
+10	PARMUN	f	f	f	f
+11	PARMUN	f	f	f	f
+1	PARDEP	f	t	f	t
+1	PARMUN	t	t	t	t
+1	NEGHDV	t	t	t	t
+2	PARGEN	f	f	f	f
+5	PARGEN	f	f	f	f
+7	PARGEN	f	f	f	f
+3	PARGEN	f	f	f	f
+4	PARGEN	f	f	f	f
+6	PARGEN	f	f	f	f
+8	PARGEN	f	f	f	f
+9	PARGEN	f	f	f	f
+10	PARGEN	f	f	f	f
+11	PARGEN	f	f	f	f
+1	PARGEN	t	t	t	t
+2	PARESC	f	f	f	f
+5	PARESC	f	f	f	f
+7	PARESC	f	f	f	f
+3	PARESC	f	f	f	f
+4	PARESC	f	f	f	f
+6	PARESC	f	f	f	f
+8	PARESC	f	f	f	f
+9	PARESC	f	f	f	f
+10	PARESC	f	f	f	f
+11	PARESC	f	f	f	f
+1	PARESC	t	t	t	t
+2	NEGHDV	f	f	f	f
+5	NEGHDV	f	f	f	f
+7	NEGHDV	f	f	f	f
+3	NEGHDV	f	f	f	f
+4	NEGHDV	f	f	f	f
+6	NEGHDV	f	f	f	f
+8	NEGHDV	f	f	f	f
+9	NEGHDV	f	f	f	f
+10	NEGHDV	f	f	f	f
+11	NEGHDV	f	f	f	f
+\.
+
+
+--
+-- TOC entry 2157 (class 0 OID 73997)
+-- Dependencies: 177
+-- Data for Name: perfiles; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY perfiles (idperfil, nombre, activo) FROM stdin;
+1	Admin Sistema	t
+2	Probando no mas	t
+5	Pepito	t
+7	jasret	t
+3	Prueba Trigger	f
+4	LISTOS O QUE	t
+6	EXCELENTE	t
+8	Cajero	f
+9	Mesero	t
+10	YA EXPORTO	t
+11	RECORDANDO	t
+\.
+
+
+--
+-- TOC entry 2161 (class 0 OID 74028)
+-- Dependencies: 181
+-- Data for Name: prueba; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY prueba (hija) FROM stdin;
+1
+1
+1
+2
+\.
+
+
+--
+-- TOC entry 2314 (class 0 OID 0)
+-- Dependencies: 170
+-- Name: sqc_clientes; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_clientes', 4, true);
+
+
+--
+-- TOC entry 2315 (class 0 OID 0)
+-- Dependencies: 172
+-- Name: sqc_configuracion; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_configuracion', 5, true);
+
+
+--
+-- TOC entry 2316 (class 0 OID 0)
+-- Dependencies: 174
+-- Name: sqc_credencial; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_credencial', 485, true);
+
+
+--
+-- TOC entry 2317 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: sqc_departamentos; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_departamentos', 33, true);
+
+
+--
+-- TOC entry 2318 (class 0 OID 0)
+-- Dependencies: 192
+-- Name: sqc_estadocivil; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_estadocivil', 4, true);
+
+
+--
+-- TOC entry 2319 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: sqc_estudiantes; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_estudiantes', 1, false);
+
+
+--
+-- TOC entry 2320 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: sqc_genero; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_genero', 2, true);
+
+
+--
+-- TOC entry 2321 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: sqc_hojadevida; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_hojadevida', 1, false);
+
+
+--
+-- TOC entry 2322 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: sqc_municipios; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_municipios', 1123, true);
+
+
+--
+-- TOC entry 2323 (class 0 OID 0)
+-- Dependencies: 178
+-- Name: sqc_tiposdocumento; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_tiposdocumento', 32, true);
+
+
+--
+-- TOC entry 2324 (class 0 OID 0)
+-- Dependencies: 183
+-- Name: sqc_usuarios; Type: SEQUENCE SET; Schema: public; Owner: usrgrh
+--
+
+SELECT pg_catalog.setval('sqc_usuarios', 4, true);
+
+
+--
+-- TOC entry 2159 (class 0 OID 74007)
+-- Dependencies: 179
+-- Data for Name: tiposdedocumento; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY tiposdedocumento (idtipodedocumento, abreviatura, tipodedocumento, activo) FROM stdin;
+1	CC	CÉDULA DE CIUDADANÍA	t
+17	DA	DESPUES DE ACTUALIZAR	t
+21	LD	LLENANDO DATOS	t
+20	BO	BORRADO ACCIDENTAL LISTO	f
+18	CA	CON AJAX CASI LISTO	f
+24	NP	NUEVA PRUEBA	t
+26	ML	MAS LISTA	t
+27	HD	HASTA DIEZ	t
+28	IO	INCLUSO HASTA ONCE	f
+29	CR	CREO QUE YA	t
+31	MD	MAS PARA DECIDIR	t
+32	ND	NUEVO DISEÑO	t
+25	DP	DESDE EL PORTATIL	t
+\.
+
+
+--
+-- TOC entry 2164 (class 0 OID 74035)
+-- Dependencies: 184
+-- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: usrgrh
+--
+
+COPY usuarios (usu_id, usu_codigo, usu_nombres, usu_apellidos, usu_correo, usu_identificacion, usu_perfil, usu_clave, usu_cambiarclave, usu_fechacreacion, usu_ultimoingreso, usu_bloqueado, usu_fechabloqueado, usu_fechadesbloqueado) FROM stdin;
+3	admin	ADMINISTRADOR	DEL SISTEMA	ALEXYSLC@GMAIL.COM	SIN	1	2f44b6ae8477301c2c38b58f13e3b017	t	2013-04-13 14:05:23.716	2013-04-13 14:05:23.716	f	\N	\N
+4	alozada	ALEXYS	LOZADA	ALEXYSLC@GMAIL.COM	80005465	1	7119f780adf6a6b95e1ce1887d29dec4	t	2013-04-13 14:09:42.274	2013-04-13 14:09:42.274	f	\N	\N
+\.
+
+
+--
+-- TOC entry 2097 (class 2606 OID 74045)
+-- Name: objetos_pkey; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY objetos
+    ADD CONSTRAINT objetos_pkey PRIMARY KEY (obj_codigo);
+
+
+--
+-- TOC entry 2089 (class 2606 OID 74047)
+-- Name: pk_cliente_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY clientes
+    ADD CONSTRAINT pk_cliente_id PRIMARY KEY (idcliente);
+
+
+--
+-- TOC entry 2093 (class 2606 OID 74049)
+-- Name: pk_configuracion; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY configuracion
+    ADD CONSTRAINT pk_configuracion PRIMARY KEY (idconfiguracion);
+
+
+--
+-- TOC entry 2095 (class 2606 OID 74051)
+-- Name: pk_cre_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY credenciales
+    ADD CONSTRAINT pk_cre_id PRIMARY KEY (cre_id);
+
+
+--
+-- TOC entry 2119 (class 2606 OID 74119)
+-- Name: pk_departamentos_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY departamentos
+    ADD CONSTRAINT pk_departamentos_id PRIMARY KEY (iddepartamento);
+
+
+--
+-- TOC entry 2127 (class 2606 OID 74144)
+-- Name: pk_estadocivil_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY estadocivil
+    ADD CONSTRAINT pk_estadocivil_id PRIMARY KEY (idestadocivil);
+
+
+--
+-- TOC entry 2115 (class 2606 OID 74107)
+-- Name: pk_genero_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY genero
+    ADD CONSTRAINT pk_genero_id PRIMARY KEY (idgenero);
+
+
+--
+-- TOC entry 2131 (class 2606 OID 74153)
+-- Name: pk_hojadevida_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT pk_hojadevida_id PRIMARY KEY (idhojadevida);
+
+
+--
+-- TOC entry 2125 (class 2606 OID 74129)
+-- Name: pk_municipios_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY municipios
+    ADD CONSTRAINT pk_municipios_id PRIMARY KEY (idmunicipio);
+
+
+--
+-- TOC entry 2107 (class 2606 OID 74053)
+-- Name: pk_oxp_oxp; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY objetosxperfil
+    ADD CONSTRAINT pk_oxp_oxp PRIMARY KEY (oxp_perfil, oxp_objeto);
+
+
+--
+-- TOC entry 2099 (class 2606 OID 74055)
+-- Name: pk_per_id; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY perfiles
+    ADD CONSTRAINT pk_per_id PRIMARY KEY (idperfil);
+
+
+--
+-- TOC entry 2101 (class 2606 OID 74057)
+-- Name: pk_tiposdedocumento; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY tiposdedocumento
+    ADD CONSTRAINT pk_tiposdedocumento PRIMARY KEY (idtipodedocumento);
+
+
+--
+-- TOC entry 2109 (class 2606 OID 74059)
+-- Name: pk_usuario; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT pk_usuario PRIMARY KEY (usu_id);
+
+
+--
+-- TOC entry 2103 (class 2606 OID 74061)
+-- Name: uk_abr_tiposdedocumento; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY tiposdedocumento
+    ADD CONSTRAINT uk_abr_tiposdedocumento UNIQUE (abreviatura);
+
+
+--
+-- TOC entry 2091 (class 2606 OID 74063)
+-- Name: uk_clientes_numeroidentificacion; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY clientes
+    ADD CONSTRAINT uk_clientes_numeroidentificacion UNIQUE (numerodocumento);
+
+
+--
+-- TOC entry 2325 (class 0 OID 0)
+-- Dependencies: 2091
+-- Name: CONSTRAINT uk_clientes_numeroidentificacion ON clientes; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON CONSTRAINT uk_clientes_numeroidentificacion ON clientes IS 'Numero de identificación unico';
+
+
+--
+-- TOC entry 2121 (class 2606 OID 74123)
+-- Name: uk_departamentos_codigo; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY departamentos
+    ADD CONSTRAINT uk_departamentos_codigo UNIQUE (codigo);
+
+
+--
+-- TOC entry 2123 (class 2606 OID 74121)
+-- Name: uk_departamentos_nombre; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY departamentos
+    ADD CONSTRAINT uk_departamentos_nombre UNIQUE (nombre);
+
+
+--
+-- TOC entry 2129 (class 2606 OID 74146)
+-- Name: uk_estadocivil_abr; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY estadocivil
+    ADD CONSTRAINT uk_estadocivil_abr UNIQUE (abreviatura);
+
+
+--
+-- TOC entry 2117 (class 2606 OID 74109)
+-- Name: uk_genero_sigla; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY genero
+    ADD CONSTRAINT uk_genero_sigla UNIQUE (sigla);
+
+
+--
+-- TOC entry 2133 (class 2606 OID 74157)
+-- Name: uk_hojadevida_correo; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT uk_hojadevida_correo UNIQUE (correo);
+
+
+--
+-- TOC entry 2135 (class 2606 OID 74155)
+-- Name: uk_hojadevida_numdoc; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT uk_hojadevida_numdoc UNIQUE (numerodocumento);
+
+
+--
+-- TOC entry 2105 (class 2606 OID 74065)
+-- Name: uk_tdd_tiposdedocumento; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY tiposdedocumento
+    ADD CONSTRAINT uk_tdd_tiposdedocumento UNIQUE (tipodedocumento);
+
+
+--
+-- TOC entry 2111 (class 2606 OID 74067)
+-- Name: uk_usu_cod; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT uk_usu_cod UNIQUE (usu_codigo);
+
+
+--
+-- TOC entry 2113 (class 2606 OID 74069)
+-- Name: uk_usu_ide; Type: CONSTRAINT; Schema: public; Owner: usrgrh; Tablespace: 
+--
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT uk_usu_ide UNIQUE (usu_identificacion);
+
+
+--
+-- TOC entry 2148 (class 2620 OID 74070)
+-- Name: tr_objetosxperfil_obj; Type: TRIGGER; Schema: public; Owner: usrgrh
+--
+
+CREATE TRIGGER tr_objetosxperfil_obj AFTER INSERT ON objetos FOR EACH ROW EXECUTE PROCEDURE fn_objetosxperfil_triupdobj();
+
+
+--
+-- TOC entry 2326 (class 0 OID 0)
+-- Dependencies: 2148
+-- Name: TRIGGER tr_objetosxperfil_obj ON objetos; Type: COMMENT; Schema: public; Owner: usrgrh
+--
+
+COMMENT ON TRIGGER tr_objetosxperfil_obj ON objetos IS 'Cada vez que se ingresa un nuevo registro a la tabla objetos, se crean los registros en la tabla objetosxperfil para cada perfil';
+
+
+--
+-- TOC entry 2149 (class 2620 OID 74071)
+-- Name: tr_objetosxperfil_per; Type: TRIGGER; Schema: public; Owner: usrgrh
+--
+
+CREATE TRIGGER tr_objetosxperfil_per AFTER INSERT ON perfiles FOR EACH ROW EXECUTE PROCEDURE fn_objetosxperfil_triupdper();
+
+
+--
+-- TOC entry 2136 (class 2606 OID 74072)
+-- Name: fk_cliente_tipodocumento; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY clientes
+    ADD CONSTRAINT fk_cliente_tipodocumento FOREIGN KEY (tipodocumento) REFERENCES tiposdedocumento(idtipodedocumento) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2142 (class 2606 OID 74191)
+-- Name: fk_hojadevida_estadocivil; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_estadocivil FOREIGN KEY (idestadocivil) REFERENCES estadocivil(idestadocivil);
+
+
+--
+-- TOC entry 2143 (class 2606 OID 74196)
+-- Name: fk_hojadevida_genero; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_genero FOREIGN KEY (idgenero) REFERENCES genero(idgenero);
+
+
+--
+-- TOC entry 2144 (class 2606 OID 74201)
+-- Name: fk_hojadevida_le; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_le FOREIGN KEY (lugarexpediciond) REFERENCES municipios(idmunicipio) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2145 (class 2606 OID 74206)
+-- Name: fk_hojadevida_ln; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_ln FOREIGN KEY (lugarnacimiento) REFERENCES municipios(idmunicipio);
+
+
+--
+-- TOC entry 2146 (class 2606 OID 74211)
+-- Name: fk_hojadevida_lr; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_lr FOREIGN KEY (lugarresidencia) REFERENCES municipios(idmunicipio) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2147 (class 2606 OID 74216)
+-- Name: fk_hojadevida_td; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY hojadevida
+    ADD CONSTRAINT fk_hojadevida_td FOREIGN KEY (idtipodedocumento) REFERENCES tiposdedocumento(idtipodedocumento) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2141 (class 2606 OID 74132)
+-- Name: fk_municipios_departamentos; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY municipios
+    ADD CONSTRAINT fk_municipios_departamentos FOREIGN KEY (iddepartamento) REFERENCES departamentos(iddepartamento) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2139 (class 2606 OID 74077)
+-- Name: fk_prueba; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY prueba
+    ADD CONSTRAINT fk_prueba FOREIGN KEY (hija) REFERENCES perfiles(idperfil) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2140 (class 2606 OID 74082)
+-- Name: fk_usu_per; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT fk_usu_per FOREIGN KEY (usu_perfil) REFERENCES perfiles(idperfil) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2137 (class 2606 OID 74087)
+-- Name: objetosxperfil_oxp_objetos_fkey; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY objetosxperfil
+    ADD CONSTRAINT objetosxperfil_oxp_objetos_fkey FOREIGN KEY (oxp_objeto) REFERENCES objetos(obj_codigo) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2138 (class 2606 OID 74092)
+-- Name: objetosxperfil_oxp_perfil_fkey; Type: FK CONSTRAINT; Schema: public; Owner: usrgrh
+--
+
+ALTER TABLE ONLY objetosxperfil
+    ADD CONSTRAINT objetosxperfil_oxp_perfil_fkey FOREIGN KEY (oxp_perfil) REFERENCES perfiles(idperfil) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- TOC entry 2182 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2014-04-18 19:57:36
+
+--
+-- PostgreSQL database dump complete
+--
+
