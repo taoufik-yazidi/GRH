@@ -37,4 +37,8 @@
         <param-name>conexionesmaximas</param-name>
         <param-value>100</param-value>
     </context-param>
+    <context-param>
+        <param-name>directorioImagenes</param-name>
+        <param-value>E:\Imagenes\</param-value>
+    </context-param>
 </web-app>

@@ -11,13 +11,16 @@ public class ODepartamentos implements IObjetoHci {
     private ArrayList<OMunicipios> municipios;
     private OMunicipios municipio;
 
+    /* Crea un departamento vacio */
     public ODepartamentos() {
         this.iddepartamento = 0;
         this.codigo = "";
         this.nombre = "";
-        this.municipios = null;
+        this.municipios = new ArrayList<OMunicipios>();
+        this.municipio = new OMunicipios();
     }
 
+    /* Crea un departamento con una lista de municipios */
     public ODepartamentos(short iddepartamento, String codigo, String nombre, ArrayList<OMunicipios> municipios) {
         this.iddepartamento = iddepartamento;
         this.codigo = codigo;
@@ -25,6 +28,7 @@ public class ODepartamentos implements IObjetoHci {
         this.municipios = municipios;
     }
 
+    /* Crea un departamento con un solo municipio */
     public ODepartamentos(short iddepartamento, String codigo, String nombre, OMunicipios municipio) {
         this.iddepartamento = iddepartamento;
         this.codigo = codigo;

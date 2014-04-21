@@ -17,6 +17,7 @@
         <jsp:include flush="true" page="head.jsp">
             <jsp:param name="pagina" value="Hojadevida" />
         </jsp:include>
+        <link rel="stylesheet" href="css/hojadevida.css" />
     </head>
     <body>
         <header>
@@ -34,86 +35,96 @@
                             <input type="number" class="form-control" id="idunico" name="idunico" placeholder="ID" readonly>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">idtipodedocumento</span>
-                            <input type="number" class="form-control" id="idtipodedocumento" name="idtipodedocumento" placeholder="idtipodedocumento" required>
+                            <span class="input-group-addon">Tipo de Documento</span>
+                            <select class="form-control" id="idtipodedocumento" name="idtipodedocumento" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">numerodocumento</span>
+                            <span class="input-group-addon">Número de Documento</span>
                             <input type="text" class="form-control" id="numerodocumento" name="numerodocumento" placeholder="numerodocumento" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">primerapellido</span>
+                            <span class="input-group-addon">Primer Apellido</span>
                             <input type="text" class="form-control" id="primerapellido" name="primerapellido" placeholder="primerapellido" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">segundoapellido</span>
+                            <span class="input-group-addon">Segundo Apellido</span>
                             <input type="text" class="form-control" id="segundoapellido" name="segundoapellido" placeholder="segundoapellido" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">nombres</span>
+                            <span class="input-group-addon">Nombres</span>
                             <input type="text" class="form-control" id="nombres" name="nombres" placeholder="nombres" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">idgenero</span>
-                            <input type="number" class="form-control" id="idgenero" name="idgenero" placeholder="idgenero" required>
+                            <span class="input-group-addon">Género</span>
+                            <select class="form-control" id="idgenero" name="idgenero" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">libretamilitar</span>
+                            <span class="input-group-addon">Libreta Militar</span>
                             <input type="text" class="form-control" id="libretamilitar" name="libretamilitar" placeholder="libretamilitar" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">distritolm</span>
+                            <span class="input-group-addon">Distrito</span>
                             <input type="text" class="form-control" id="distritolm" name="distritolm" placeholder="distritolm" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">lugarnacimiento</span>
-                            <input type="number" class="form-control" id="lugarnacimiento" name="lugarnacimiento" placeholder="lugarnacimiento" required>
+                            <span class="input-group-addon">Lugar de Nacimiento</span>
+                            <select class="form-control" id="iddeptonacimiento" name="iddeptonacimiento" required></select>
+                            <select class="form-control" id="idlugarnacimiento" name="idlugarnacimiento" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">lugarexpediciond</span>
-                            <input type="number" class="form-control" id="lugarexpediciond" name="lugarexpediciond" placeholder="lugarexpediciond" required>
+                            <span class="input-group-addon">Lugar de Expedición</span>
+                            <select class="form-control" id="iddeptoexpedicion" name="iddeptoexpedicion" required></select>
+                            <select class="form-control" id="idlugarexpedicion" name="idlugarexpedicion" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">lugarresidencia</span>
-                            <input type="number" class="form-control" id="lugarresidencia" name="lugarresidencia" placeholder="lugarresidencia" required>
+                            <span class="input-group-addon">Lugar de Residencia</span>
+                            <select class="form-control" id="iddeptoresidencia" name="iddeptoresidencia" required></select>
+                            <select class="form-control" id="idlugarresidencia" name="idlugarresidencia" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">fechanacimiento</span>
+                            <span class="input-group-addon">Fecha de Nacimiento</span>
                             <input type="date" class="form-control" id="fechanacimiento" name="fechanacimiento" placeholder="fechanacimiento" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">fechaexpediciond</span>
+                            <span class="input-group-addon">Fecha de Expedición</span>
                             <input type="date" class="form-control" id="fechaexpediciond" name="fechaexpediciond" placeholder="fechaexpediciond" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">idestadocivil</span>
-                            <input type="number" class="form-control" id="idestadocivil" name="idestadocivil" placeholder="idestadocivil" required>
+                            <span class="input-group-addon">Estado Civil</span>
+                            <select class="form-control" id="idestadocivil" name="idestadocivil" required></select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">disponibilidadviaje</span>
-                            <input type="chackbox" class="form-control" id="disponibilidadviaje" name="disponibilidadviaje" placeholder="disponibilidadviaje" required>
+                            <span class="input-group-addon">Disponibilidad para viajar</span>
+                            <input type="checkbox" class="form-control" id="disponibilidadviaje" name="disponibilidadviaje" placeholder="disponibilidadviaje">
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">direccion</span>
+                            <span class="input-group-addon">Dirección</span>
                             <input type="text" class="form-control" id="direccion" name="direccion" placeholder="direccion" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">telefono</span>
+                            <span class="input-group-addon">Teléfono</span>
                             <input type="text" class="form-control" id="telefono" name="telefono" placeholder="telefono" required>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-addon">correo</span>
+                            <span class="input-group-addon">Correo</span>
                             <input type="text" class="form-control" id="correo" name="correo" placeholder="correo" required>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-group-addon">foto</span>
-                            <input type="text" class="form-control" id="foto" name="foto" placeholder="foto" required>
                         </div>
                         <div class="form-group">
                             <button data-accion="1" type="submit" class="btn btn-primary" id="btnGuardar"><span class="glyphicon glyphicon-floppy-disk">&nbsp;</span>Guardar</button>
                             <button class="btn btn-warning" id="btnCancelar"><span class="glyphicon glyphicon-remove">&nbsp;</span>Cancelar</button>
                         </div>
                     </fieldset>
+                </form>
+                <form action="SCargarImagenes" method="post" enctype="multipart/form-data">
+                    <div class="input-group">
+                        <h3>Foto</h3>
+                        <div id="preview" class="thumbnail">
+                            <a href="#" id="file-select" class="btn btn-default">Seleccionar Archivo</a>
+                            <img src="img/user.png">
+                            <input class="form-control" type="file" id="foto" name="foto" placeholder="Seleccione la Foto" required>
+                        </div>
+                        <button id="btnCargaFoto" class="btn btn-success">Cargar Foto</button>
+                    </div>
                 </form>
             </div>
             <div id="unDiv"></div>
@@ -178,11 +189,13 @@
                 </table>
             </div>
         </section>
+        <script src="js/jsHojaVida.jQuery.js"></script>
         <script>
             $(document).on('ready', function() {
                 var nombres = ['ID', 'idtipodedocumento', 'numerodocumento', 'primerapellido', 'segundoapellido', 'nombres', 'idgenero', 'libretamilitar', 'distritolm', 'lugarnacimiento', 'lugarexpediciond', 'lugarresidencia', 'fechanacimiento', 'fechaexpediciond', 'idestadocivil', 'disponibilidadviaje', 'direccion', 'telefono', 'correo', 'foto'];
                 var campos = ['#idunico', '#idtipodedocumento', '#numerodocumento', '#primerapellido', '#segundoapellido', '#nombres', '#idgenero', '#libretamilitar', '#distritolm', '#lugarnacimiento', '#lugarexpediciond', '#lugarresidencia', '#fechanacimiento', '#fechaexpediciond', '#idestadocivil', '#disponibilidadviaje', '#direccion', '#telefono', '#correo', '#foto'];
                 $('#frmFormulario').eventoAjax('#btnGuardar', '#btnCancelar', '#unDiv', '#frmLista', '#msgLista', '#cuerpoLista', nombres, campos);
+                $('document').jsHojaVida();
             });
         </script>
     </body>

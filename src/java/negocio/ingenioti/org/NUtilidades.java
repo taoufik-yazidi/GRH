@@ -17,6 +17,7 @@ public final class NUtilidades {
     private static PGPoolingDataSource piscina = null;
     private static ServletContext contextoApp;
     private static boolean creado = false;
+    private static String DIRECTORIO_IMAGENES;
     public static final byte MENSAJE_ERROR = 0;
     public static final byte MENSAJE_INFO  = 1;
     public static final byte MENSAJE_CORRECTO = 2;
@@ -29,7 +30,12 @@ public final class NUtilidades {
         if(!creado){
             contextoApp = contexto;
             setPiscina();
+            DIRECTORIO_IMAGENES = contextoApp.getInitParameter("directorioImagenes");
         }
+    }
+
+    public static String getDirectorioImagenes(){
+        return DIRECTORIO_IMAGENES;
     }
     
     private static void setPiscina(){

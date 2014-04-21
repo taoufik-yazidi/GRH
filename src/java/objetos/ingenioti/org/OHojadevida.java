@@ -16,7 +16,7 @@ public class OHojadevida implements IObjetoHci {
     private OGenero genero;
     private String libretamilitar;
     private String distritolm;
-    private OMunicipios lugarnacimiento, lugarexpedicion, lugarresidencia;
+    private ODepartamentos lugarnacimiento, lugarexpedicion, lugarresidencia;
     private Calendar fechanacimiento, fechaexpedicion;
     private OEstadoCivil estadocivil;
     private boolean disponibilidadviaje;
@@ -31,8 +31,8 @@ public class OHojadevida implements IObjetoHci {
 
     public OHojadevida(int idhojadevida, OTiposDeDocumento tipodedocumento, String numerodocumento,
             String primerapellido, String segundoapellido, String nombres, OGenero genero,
-            String libretamilitar, String distritolm, OMunicipios lugarnacimiento,
-            OMunicipios lugarexpedicion, OMunicipios lugarresidencia, Calendar fechanacimiento,
+            String libretamilitar, String distritolm, ODepartamentos lugarnacimiento,
+            ODepartamentos lugarexpedicion, ODepartamentos lugarresidencia, Calendar fechanacimiento,
             Calendar fechaexpedicion, OEstadoCivil estadocivil, boolean disponibilidadviaje,
             String direccion, String telefono, String correo, String foto) {
         this.idhojadevida = idhojadevida;
@@ -74,12 +74,12 @@ public class OHojadevida implements IObjetoHci {
         this.genero.setIdgenero(genero);
         this.libretamilitar = libretamilitar;
         this.distritolm = distritolm;
-        this.lugarnacimiento = new OMunicipios();
-        this.lugarnacimiento.setIdmunicipio(lugarnacimiento);
-        this.lugarexpedicion = new OMunicipios();
-        this.lugarexpedicion.setIdmunicipio(lugarexpedicion);
-        this.lugarresidencia = new OMunicipios();
-        this.lugarresidencia.setIdmunicipio(lugarresidencia);
+        this.lugarnacimiento = new ODepartamentos();
+        this.lugarnacimiento.getMunicipio().setIdmunicipio(lugarnacimiento);
+        this.lugarexpedicion = new ODepartamentos();
+        this.lugarexpedicion.getMunicipio().setIdmunicipio(lugarexpedicion);
+        this.lugarresidencia = new ODepartamentos();
+        this.lugarresidencia.getMunicipio().setIdmunicipio(lugarresidencia);
         this.fechanacimiento = fechanacimiento;
         this.fechaexpedicion = fechaexpedicion;
         this.estadocivil = new OEstadoCivil();
@@ -163,27 +163,27 @@ public class OHojadevida implements IObjetoHci {
         this.distritolm = distritolm;
     }
 
-    public OMunicipios getLugarnacimiento() {
+    public ODepartamentos getLugarnacimiento() {
         return lugarnacimiento;
     }
 
-    public void setLugarnacimiento(OMunicipios lugarnacimiento) {
+    public void setLugarnacimiento(ODepartamentos lugarnacimiento) {
         this.lugarnacimiento = lugarnacimiento;
     }
 
-    public OMunicipios getLugarexpedicion() {
+    public ODepartamentos getLugarexpedicion() {
         return lugarexpedicion;
     }
 
-    public void setLugarexpedicion(OMunicipios lugarexpedicion) {
+    public void setLugarexpedicion(ODepartamentos lugarexpedicion) {
         this.lugarexpedicion = lugarexpedicion;
     }
 
-    public OMunicipios getLugarresidencia() {
+    public ODepartamentos getLugarresidencia() {
         return lugarresidencia;
     }
 
-    public void setLugarresidencia(OMunicipios lugarresidencia) {
+    public void setLugarresidencia(ODepartamentos lugarresidencia) {
         this.lugarresidencia = lugarresidencia;
     }
 

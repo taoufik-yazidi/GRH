@@ -95,7 +95,7 @@ $.fn.eventoAjax = function(btnGuardar, btnCancelar, msgNormal, frmLista, msgList
         var _accion = $(btnGuardar).data("accion");
         var _datos = $(this).serialize();
         _datos += '&accion='+_accion;
-        //console.log(_datos);
+        console.log(_datos);
         enviarDatos(_datos);
         $(btnGuardar).data("accion","1");
         $(tabla).html("");

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/jquery-1.9.1.min.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <title>TODO supply a title</title>
+    </head>
+    <body>
+        <form id="frmCargue">
+            <label for="archivo">Cargar archivo</label>
+            <input type="file" id="archivo1" data-archivo="1" name="archivo1">
+            <input type="file" id="archivo2" data-archivo="2" name="archivo2">
+            <input type="file" id="archivo3" data-archivo="3" name="archivo3">
+            <input type="file" id="archivo4" data-archivo="4" name="archivo4">
+            <button>Cargar</button>
+        </form>
+        <script>
+            $(document).on('ready', function() {
+                // Variable to store your files
+                var files = new Array();
+                // Add events
+                $('input[type=file]').on('change', function (event) {
+                    var _posicion = $(this).data("archivo");
+                    _posicion = parseInt(_posicion);
+                    files[_posicion-1] = event.target.files;
+                });
+                
+                $('button').on('click', function(event) {
+                    event.preventDefault(); // Totally stop stuff happening
+                    // START A LOADING SPINNER HERE
+
+                    // Create a formdata object and add the files
+                    var data = new FormData();
+
+                    $.each(files, function(key, value) {
+                        data.append(key, value);
+                    });
+                    $.ajax({
+                        url: 'SCargarArchivos',
+                        type: 'post',
+                        data: data,
+                        cache: false,
+                        dataType: 'json',
+                        processData: false, // Don't process the files
+                        contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+                        success: function(data, textStatus, jqXHR) {
+                            if (typeof data.error === 'undefined') {
+                                // Success so call function to process the form
+                                console.log(data);
+                            } else {
+                                // Handle errors here
+                                console.log('ERRORS: ' + data.error);
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            // Handle errors here
+                            console.log('ERRORS: ' + textStatus);
+                            // STOP LOADING SPINNER
+                        }
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
