@@ -98,12 +98,14 @@ public class SMunicipios extends HttpServlet {
             String siddepartamento = request.getParameter("iddepartamento");
             String scodigo = request.getParameter("codigo");
             String snombre = request.getParameter("nombre");
+            
             short iidmunicipio = 0;
             try {
                 iidmunicipio = Short.parseShort(sidmunicipio);
             } catch (NumberFormatException nfe) {
                 LOG.log(Level.WARNING, "Error al convertir: idmunicipio en Short  en el servlet SMunicipios");
             }
+            
             short iiddepartamento = 0;
             try {
                 iiddepartamento = Short.parseShort(siddepartamento);
@@ -124,13 +126,17 @@ public class SMunicipios extends HttpServlet {
             int totalRegistros = 0;
 
             // Para realizar la acción de la 1 a la 3
-            if (sAccion > 0 && sAccion < 4) {
+            //if (sAccion > 0 && sAccion < 4) {
+            if (sAccion.equals(SUtilidades.INSERTAR) || sAccion.equals(SUtilidades.MODIFICAR)
+                    || sAccion.equals(SUtilidades.BORRAR)){
                 // Validación de campos vacios
-                if (sAccion != 3 && (siddepartamento == null || siddepartamento.length() == 0 || scodigo == null || scodigo.length() == 0 || snombre == null || snombre.length() == 0)) {
-                    tipoMensaje = 4;
+                if (!sAccion.equals(SUtilidades.BORRAR) 
+                        && (siddepartamento == null || siddepartamento.length() == 0 
+                            || scodigo == null || scodigo.length() == 0 || snombre == null 
+                            || snombre.length() == 0)) {
                     mensaje = "Todos los campos son obligatorios";
                     modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
+                            .add("tipoMensaje", SUtilidades.MENSAJEADVERTENCIA)
                             .add("mensaje", mensaje)
                             .build();
                     jsEscritor.writeObject(modelo);
@@ -138,7 +144,7 @@ public class SMunicipios extends HttpServlet {
                     int respuesta = 0;
                     try {
                         respuesta = nMunicipios.ejecutarSQL(sAccion, oDepartamentos, credencial);
-                        tipoMensaje = 3; // Inicia en warning porque es la mayor cantidad de opciones
+                        tipoMensaje = SUtilidades.MENSAJEADVERTENCIA; // Inicia en warning porque es la mayor cantidad de opciones
                         if (respuesta == -2) {
                             mensaje = "Error de llave duplicada";
                         }
@@ -150,10 +156,10 @@ public class SMunicipios extends HttpServlet {
                         }
                         if (respuesta > 0) {
                             mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                            tipoMensaje = 1;
+                            tipoMensaje = SUtilidades.MENSAJECORRECTO;
                         }
                     } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = 3;
+                        tipoMensaje = SUtilidades.MENSAJEADVERTENCIA;
                         mensaje = eg.getMessage();
                     }
                     modelo = Json.createObjectBuilder()
@@ -163,7 +169,7 @@ public class SMunicipios extends HttpServlet {
                     jsEscritor.writeObject(modelo);
                 }
             }
-            if (sAccion == 4) { // Consultar
+            if (sAccion.equals(SUtilidades.CONSULTAR)) { // Consultar
                 try {
                     totalRegistros = nMunicipios.getCantidadRegistros("municipios");
                     if (totalRegistros > 0) {
@@ -174,7 +180,7 @@ public class SMunicipios extends HttpServlet {
                     if (iPagina > totalPaginas) {
                         iPagina = totalPaginas;
                     }
-                    lista = nMunicipios.consultar((short) 4, sTipoConsulta, oDepartamentos, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                    lista = nMunicipios.consultar(SUtilidades.CONSULTAR, sTipoConsulta, oDepartamentos, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
                     tipoMensajeLista = 1;
                     mensajeLista = "Cargue de consulta realizado correctamente.";
                 } catch (ExcepcionGeneral eg) {

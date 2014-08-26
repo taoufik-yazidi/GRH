@@ -112,10 +112,11 @@ public class SDepartamentos extends HttpServlet {
             int totalPaginas = 0;
             int totalRegistros = 0;
 
-            // Para realizar la acción de la 1 a la 3
-            if (sAccion > 0 && sAccion < 4) {
+            // Insertar, modificar o borrar
+            if (sAccion.equals(SUtilidades.INSERTAR) || sAccion.equals(SUtilidades.MODIFICAR)
+                    || sAccion.equals(SUtilidades.BORRAR)) {
                 // Validación de campos vacios
-                if (sAccion != 3 && (scodigo == null || scodigo.length() == 0 || snombre == null || snombre.length() == 0)) {
+                if ( !sAccion.equals(SUtilidades.BORRAR) && (scodigo == null || scodigo.length() == 0 || snombre == null || snombre.length() == 0)) {
                     tipoMensaje = 4;
                     mensaje = "Todos los campos son obligatorios";
                     modelo = Json.createObjectBuilder()

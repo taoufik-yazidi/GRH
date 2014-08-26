@@ -95,7 +95,7 @@ public class SHojadevida extends HttpServlet {
                 iColumnaOrden = 1;
             }
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String sidhojadevida = request.getParameter("idhojadevida");
             String sidtipodedocumento = request.getParameter("idtipodedocumento");
             String snumerodocumento = request.getParameter("numerodocumento");
@@ -126,9 +126,10 @@ public class SHojadevida extends HttpServlet {
             OHojadevida oHojadevida = new OHojadevida();
             
             // Para realizar la acción de la 1 a la 3
-            if (sAccion > 0 && sAccion < 4) {
+            if (sAccion.equals(SUtilidades.INSERTAR) || sAccion.equals(SUtilidades.MODIFICAR)
+                    || sAccion.equals(SUtilidades.BORRAR)) {
                 // Validación de campos vacios
-                if (sAccion != 3 && (sidtipodedocumento == null || sidtipodedocumento.length() == 0 
+                if ( !sAccion.equals(SUtilidades.BORRAR) && (sidtipodedocumento == null || sidtipodedocumento.length() == 0 
                         || snumerodocumento == null || snumerodocumento.length() == 0 || sprimerapellido == null 
                         || sprimerapellido.length() == 0 || ssegundoapellido == null || ssegundoapellido.length() == 0 
                         || snombres == null || snombres.length() == 0 || sidgenero == null || sidgenero.length() == 0 
@@ -148,10 +149,12 @@ public class SHojadevida extends HttpServlet {
                     jsEscritor.writeObject(modelo);
                 } else {
                     int iidhojadevida = 0;
-                    try {
-                        iidhojadevida = Integer.parseInt(sidhojadevida);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: idhojadevida en int  en el servlet SHojadevida");
+                    if(!sAccion.equals(SUtilidades.INSERTAR)){
+                        try {
+                            iidhojadevida = Integer.parseInt(sidhojadevida);
+                        } catch (NumberFormatException nfe) {
+                            System.err.println("Error al convertir: idhojadevida en int en el servlet SHojadevida");
+                        }
                     }
                     short iidtipodedocumento = 0;
                     try {

@@ -274,7 +274,7 @@ $.fn.eventoAjax = function(btnGuardar, btnCancelar, msgNormal, frmLista, msgList
                 miHtml += respuesta['mensaje'];
                 miHtml += '</div>';
                 $(msgNormal).html(miHtml);
-                if(respuesta['tipoMensaje']!==4){
+                if(respuesta['tipoMensaje'] !== 4 && respuesta['tipoMensaje'] !== 0){
                     limpiarFormulario();
                 };
             },

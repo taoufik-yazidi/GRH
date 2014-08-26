@@ -21,6 +21,14 @@ import negocio.ingenioti.org.NAutenticacion;
 @WebServlet(name = "SUtilidades", urlPatterns = {"/SUtilidades"})
 public final class SUtilidades extends HttpServlet {
 
+    protected final static Short INSERTAR = 1;
+    protected final static Short MODIFICAR = 2;
+    protected final static Short BORRAR = 3;
+    protected final static Short CONSULTAR = 4;
+    protected final static Short MENSAJECORRECTO = 1;
+    protected final static Short MENSAJEINFORMATIVO = 2;
+    protected final static Short MENSAJEADVERTENCIA = 3;
+    protected final static Short MENSAJEERROR = 4;
     /**
      * Metodo irAPagina, utilizado para redireccionar una pagina
      * @param direccion Direccion a la que desea ir (absoluta o relativa)

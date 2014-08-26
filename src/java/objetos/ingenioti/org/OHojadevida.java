@@ -24,7 +24,7 @@ public class OHojadevida implements IObjetoHci {
     private String telefono;
     private String correo;
     private String foto;
-    private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public OHojadevida() {
     }
@@ -191,34 +191,47 @@ public class OHojadevida implements IObjetoHci {
         return fechanacimiento;
     }
 
-    public String getFechanacimientoSDF(){
-        return sdf.format(this.fechanacimiento);
+    public String getFechanacimientoSDF() {
+        return sdf.format(this.fechanacimiento.getTime());
     }
 
     public void setFechanacimiento(Calendar fechanacimiento) {
+        if (this.fechanacimiento == null) {
+            this.fechanacimiento = Calendar.getInstance();
+        }
         this.fechanacimiento = fechanacimiento;
     }
 
-    public void setFechanacimiento(Date fechanacimiento){
+    public void setFechanacimiento(Date fechanacimiento) {
+        if (this.fechanacimiento == null) {
+            this.fechanacimiento = Calendar.getInstance();
+        }
         this.fechanacimiento.setTime(fechanacimiento);
     }
-    
+
     public Calendar getFechaexpedicion() {
         return fechaexpedicion;
     }
 
-    public String getFechaexpedicionSDF(){
-        return sdf.format(this.fechaexpedicion);
+    public String getFechaexpedicionSDF() {
+        return sdf.format(this.fechaexpedicion.getTime());
     }
-    
+
     public void setFechaexpedicion(Calendar fechaexpedicion) {
+        if (this.fechaexpedicion == null) {
+            this.fechaexpedicion = Calendar.getInstance();
+        }
+
         this.fechaexpedicion = fechaexpedicion;
     }
 
-    public void setFechaexpedicion(Date fechaexpedicion){
+    public void setFechaexpedicion(Date fechaexpedicion) {
+        if (this.fechaexpedicion == null) {
+            this.fechaexpedicion = Calendar.getInstance();
+        }
         this.fechaexpedicion.setTime(fechaexpedicion);
     }
-    
+
     public OEstadoCivil getEstadocivil() {
         return estadocivil;
     }
@@ -260,6 +273,9 @@ public class OHojadevida implements IObjetoHci {
     }
 
     public String getFoto() {
+        if(foto == null){
+            return "";
+        }
         return foto;
     }
 

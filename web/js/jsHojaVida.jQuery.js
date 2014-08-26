@@ -113,9 +113,7 @@
         });
 
         $('#btnCargaFoto').on('click', function(event) {
-            event.preventDefault(); // Totally stop stuff happening
-            // START A LOADING SPINNER HERE
-
+            event.preventDefault(); 
             // Create a formdata object and add the files
             var data = new FormData();
 
