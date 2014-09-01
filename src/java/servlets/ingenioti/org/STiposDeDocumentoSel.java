@@ -17,13 +17,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import objetos.ingenioti.org.OCredencial;
 import negocio.ingenioti.org.NTiposDeDocumentos;
+import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.OTiposDeDocumento;
 
-@WebServlet(name = "STiposDeDocumento", urlPatterns = {"/STiposDeDocumento"})
-public class STiposDeDocumento extends HttpServlet {
-    private static final Logger LOG = Logger.getLogger(STiposDeDocumento.class.getName());
+@WebServlet(name = "STiposDeDocumentoSel", urlPatterns = {"/STiposDeDocumentoSel"})
+public class STiposDeDocumentoSel extends HttpServlet {
+    private static final Logger LOG = Logger.getLogger(STiposDeDocumentoSel.class.getName());
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,88 +40,95 @@ public class STiposDeDocumento extends HttpServlet {
         response.setContentType("application/json");
         HttpSession sesion = request.getSession();
         if (SUtilidades.autenticado(sesion)) {
-
-            // Elementos de respuesta
-            String mensaje = "";
-            short tipoMensaje;
             String mensajeLista;
-            short tipoMensajeLista;
-            JsonObject modelo;
+            byte tipoMensajeLista;
+            JsonObject jsLista;
             JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String accion = request.getParameter("accion");
             String tipoConsulta = request.getParameter("tipoConsulta");
             String idTipoDocumento = request.getParameter("idunico");
-            String abreviatura = request.getParameter("abreviatura");
-            String tipoDeDocumento = request.getParameter("tipoDocumento");
-            String activo = request.getParameter("activo");
-
-            boolean bActivo = activo != null;
-
-            byte sAccion;
+            
+            byte sTipoConsulta;
             try {
-                sAccion = Byte.parseByte(accion);
+                sTipoConsulta = Byte.parseByte(tipoConsulta);
             } catch (NumberFormatException nfe) {
-                sAccion = 0;
+                sTipoConsulta = 0;
             }
-
             short iidTipoDocumento = 0;
-            if (sAccion != SUtilidades.ACCIONINSERTAR) {
+            
+            if (sTipoConsulta == SUtilidades.CONSULTA_ID) {
                 try {
                     iidTipoDocumento = Short.parseShort(idTipoDocumento);
                 } catch (NumberFormatException nfe) {
                     SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir idTipoDocumento %s", idTipoDocumento);
                 }
             }
+            // Variables de paginación
+            String pagina = request.getParameter("pag");
+            String limite = request.getParameter("lim");
+            String columnaOrden = request.getParameter("cor");
+            String tipoOrden = request.getParameter("tor");
 
-            // Para realizar cualquier accion de insertar, modificar o borrar
-            NTiposDeDocumentos nTiposDeDocumento = new NTiposDeDocumentos();
-            OTiposDeDocumento oTiposDeDocumento = new OTiposDeDocumento(iidTipoDocumento, abreviatura, tipoDeDocumento, bActivo);
-
-            if (sAccion == SUtilidades.ACCIONINSERTAR
-                    || sAccion == SUtilidades.ACCIONACTUALIZAR
-                    || sAccion == SUtilidades.ACCIONBORRAR) {
-                if (sAccion != SUtilidades.ACCIONBORRAR && (abreviatura == null || abreviatura.length() == 0
-                        || tipoDeDocumento == null || tipoDeDocumento.length() == 0)) {
-                    tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA;
-                    mensaje = "Todos los campos son obligatorios";
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                } else {
-                    int respuesta = 0;
-                    try {
-                        respuesta = nTiposDeDocumento.ejecutarSQL(sAccion, oTiposDeDocumento, credencial);
-                        tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA; // Inicia en Warning porque es la mayor cantidad de opciones
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_UK) {
-                            mensaje = "Error de llave duplicada.";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_FK) {
-                            mensaje = "Error de violación de llave foranea. Problema de dependencias.";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR) {
-                            mensaje = "No se encontró el registro en la BD.";
-                        }
-                        if (respuesta > 0) {
-                            tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
-                            mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                        }
-                    } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
-                        mensaje = eg.getMessage();
-                    }
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                }
+            if (tipoOrden == null || tipoOrden.length() == 0) {
+                tipoOrden = "asc";
             }
+            
+            int iPagina, iLimite, iColumnaOrden;
+            try {
+                iPagina = Integer.parseInt(pagina);
+                iLimite = Integer.parseInt(limite);
+                iColumnaOrden = Integer.parseInt(columnaOrden);
+            } catch (NumberFormatException nfe) {
+                iPagina = 1;
+                iLimite = 5;
+                iColumnaOrden = 1;
+            }
+            
+            NTiposDeDocumentos nTiposDeDocumento = new NTiposDeDocumentos();
+            OTiposDeDocumento oTiposDeDocumento = new OTiposDeDocumento(iidTipoDocumento, null, null, false);
+
+            // Preparación de la lista de objetos a retornar
+            ArrayList<OTiposDeDocumento> lista = new ArrayList<OTiposDeDocumento>();
+            int totalPaginas = 0;
+            int totalRegistros = 0;
+            totalRegistros = nTiposDeDocumento.getCantidadRegistros("tiposdedocumento");
+            if (totalRegistros > 0) {
+                totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
+            } else {
+                totalPaginas = 0;
+            }
+            if (iPagina > totalPaginas) {
+                iPagina = totalPaginas;
+            }
+            try {
+                lista = nTiposDeDocumento.consultar(sTipoConsulta, oTiposDeDocumento, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                tipoMensajeLista = 1;
+                mensajeLista = "Cargue de consulta realizado correctamente.";
+            } catch (ExcepcionGeneral eg) {
+                tipoMensajeLista = SUtilidades.TIPO_MSG_ERROR;
+                mensajeLista = eg.getMessage();
+            }
+            jsArray = Json.createArrayBuilder();
+            for (OTiposDeDocumento td : lista) {
+                JsonObject temp = Json.createObjectBuilder()
+                        .add("idtipodedocumento", td.getIdtipodedocumento())
+                        .add("abreviatura", td.getAbreviatura())
+                        .add("tipodedocumento", td.getTipodedocumento())
+                        .add("activo", td.isActivo())
+                        .build();
+                jsArray.add(temp);
+            }
+            jsLista = Json.createObjectBuilder()
+                    .add("tipoMensajeLista", tipoMensajeLista)
+                    .add("mensajeLista", mensajeLista)
+                    .add("registros", totalRegistros)
+                    .add("paginas", totalPaginas)
+                    .add("lista", jsArray)
+                    .build();
+            jsEscritor.writeObject(jsLista);
             jsEscritor.close();
 
             String jsObjeto = sEscritor.toString();

@@ -121,7 +121,7 @@ public class NAutenticacion extends NGeneralidades{
         return false;
     }
     
-    public boolean tienePermiso(Short tipoDeAccion, Short perfil, String objeto){
+    protected boolean tienePermiso(byte tipoDeAccion, Short perfil, String objeto){
         boolean tiene = false;
         try{
             conectar("select * from fn_objetosxperfil_val(?,?,?)");

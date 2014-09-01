@@ -3,11 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package servlets.ingenioti.org;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -35,19 +33,18 @@ public class SCerrarSesion extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         response.setContentType("text/html;charset=UTF-8");
         HttpSession sesion = request.getSession();
         OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
         NAutenticacion cerrar = new NAutenticacion();
-        String mensaje = "", tipoRespuesta = "error";
-        if(cerrar.cerrarSesion(credencial.getUsuario())){
-            tipoRespuesta = "correcto";
+        String mensaje;
+        if (cerrar.cerrarSesion(credencial.getUsuario())) {
             mensaje = "Sesion cerrada exitosamente";
         } else {
             mensaje = "Al parecer hubo un problema al cerrar la sesión";
         }
         sesion.invalidate();
-        request.setAttribute("tipoRespuesta", tipoRespuesta);
         request.setAttribute("mensaje", mensaje);
         SUtilidades.irAPagina("/index.jsp", request, response, request.getServletContext());
     }

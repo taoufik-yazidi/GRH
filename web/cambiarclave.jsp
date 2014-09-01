@@ -39,7 +39,6 @@
                 <p>Formulario para el cambio de clave.</p>
                 <form action="SCambiarClave" method="post" class="form-signin">
                     <h2 class="form-signin-heading">Cambio de clave</h2>
-                    <input type="hidden" name="ts" value="normal">
                     <input class="input-block-level" autofocus autocomplete="off" type="password" id="txtAnterior" name="txtAnterior" placeholder="Clave Actual">
                     <input class="input-block-level" autocomplete="off" type="password" id="txtNueva" name="txtNueva" placeholder="Clave Nueva">
                     <input class="input-block-level" autocomplete="off" type="password" id="txtConfirma" name="txtConfirma" placeholder="Confirmar Clave">

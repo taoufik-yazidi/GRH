@@ -3,14 +3,17 @@ package negocio.ingenioti.org;
 import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.OEstadoCivil;
 
 public class NEstadocivil extends NGeneralidades {
 
     private final String MIOBJETO = "PARESC";
+    private static final Logger LOG = Logger.getLogger(NEstadocivil.class.getName());
 
-    public int ejecutarSQL(short ta, OEstadoCivil obj, OCredencial cre) throws ExcepcionGeneral {
+    public int ejecutarSQL(byte ta, OEstadoCivil obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
@@ -38,7 +41,7 @@ public class NEstadocivil extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                System.err.println("Error en NEstadocivil insertar: " + sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NEstadocivil insertar: %s", sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();
@@ -51,10 +54,10 @@ public class NEstadocivil extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<OEstadoCivil> consultar(short ta, short tc, OEstadoCivil obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<OEstadoCivil> consultar(short tc, OEstadoCivil obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<OEstadoCivil> lista = new ArrayList<OEstadoCivil>();
-        if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
+        if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 conectar("select * from fn_estadocivil_sel(?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);

@@ -3,30 +3,33 @@ package negocio.ingenioti.org;
 import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.ODepartamentos;
 
 public class NDepartamentos extends NGeneralidades {
 
     private final String MIOBJETO = "PARDEP";
+    private static final Logger LOG = Logger.getLogger(NDepartamentos.class.getName());
 
-    public int ejecutarSQL(short ta, ODepartamentos obj, OCredencial cre) throws ExcepcionGeneral {
+    public int ejecutarSQL(byte ta, ODepartamentos obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 switch (ta) {
-                    case 1: // Insertar
+                    case NUtilidades.ACCIONINSERTAR:
                         conectar("select * from fn_departamentos_ins(?, ?)");
                         sentenciaProcedimiento.setString(1, obj.getCodigo());
                         sentenciaProcedimiento.setString(2, obj.getNombre());
                         break;
-                    case 2: //ACTUALIZAR
+                    case NUtilidades.ACCIONACTUALIZAR:
                         conectar("select * from fn_departamentos_upd(?, ?, ?)");
                         sentenciaProcedimiento.setShort(1, obj.getIddepartamento());
                         sentenciaProcedimiento.setString(2, obj.getCodigo());
                         sentenciaProcedimiento.setString(3, obj.getNombre());
                         break;
-                    case 3: //BORRAR
+                    case NUtilidades.ACCIONBORRAR:
                         conectar("select * from fn_departamentos_del(?)");
                         sentenciaProcedimiento.setShort(1, obj.getIddepartamento());
                         break;
@@ -38,7 +41,7 @@ public class NDepartamentos extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                System.err.println("Error en NDepartamentos insertar: " + sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NDepartamentos insertar: %s", sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();
@@ -51,10 +54,10 @@ public class NDepartamentos extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<ODepartamentos> consultar(short ta, short tc, ODepartamentos obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<ODepartamentos> consultar(byte tc, ODepartamentos obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
-        if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
+        if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 conectar("select * from fn_departamentos_sel(?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);

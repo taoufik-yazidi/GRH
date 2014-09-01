@@ -45,14 +45,17 @@ public class SHojadevida extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
         response.setContentType("application/json");
         HttpSession sesion = request.getSession();
+        
         if (SUtilidades.autenticado(sesion)) {
             // Elementos de respuesta
             String mensaje = "";
-            short tipoMensaje = 0;
-            String mensajeLista = "";
-            short tipoMensajeLista = 0;
+            short tipoMensaje;
+            String mensajeLista;
+            short tipoMensajeLista;
+            // Objetos Json de respuesta
             JsonObject modelo, jsLista;
             JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
@@ -60,178 +63,132 @@ public class SHojadevida extends HttpServlet {
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
             String accion = request.getParameter("accion");
-            String tipoConsulta = request.getParameter("tipoConsulta");
-            Short sAccion;
-            Short sTipoConsulta;
+            byte sAccion;
+
             try {
-                sAccion = Short.parseShort(accion);
+                sAccion = Byte.parseByte(accion);
             } catch (NumberFormatException nfe) {
                 sAccion = 0;
             }
-            try {
-                sTipoConsulta = Short.parseShort(tipoConsulta);
-            } catch (NumberFormatException nfe) {
-                sTipoConsulta = 0;
-            }
-
-            // Variables de paginación
-            String pagina = request.getParameter("pag");
-            String limite = request.getParameter("lim");
-            String columnaOrden = request.getParameter("cor");
-            String tipoOrden = request.getParameter("tor");
-
-            if (tipoOrden == null || tipoOrden.length() == 0) {
-                tipoOrden = "asc";
-            }
-
-            int iPagina, iLimite, iColumnaOrden;
-            try {
-                iPagina = Integer.parseInt(pagina);
-                iLimite = Integer.parseInt(limite);
-                iColumnaOrden = Integer.parseInt(columnaOrden);
-            } catch (NumberFormatException nfe) {
-                iPagina = 1;
-                iLimite = 5;
-                iColumnaOrden = 1;
-            }
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String sidhojadevida = request.getParameter("idhojadevida");
-            String sidtipodedocumento = request.getParameter("idtipodedocumento");
-            String snumerodocumento = request.getParameter("numerodocumento");
-            String sprimerapellido = request.getParameter("primerapellido");
-            String ssegundoapellido = request.getParameter("segundoapellido");
-            String snombres = request.getParameter("nombres");
-            String sidgenero = request.getParameter("idgenero");
-            String slibretamilitar = request.getParameter("libretamilitar");
-            String sdistritolm = request.getParameter("distritolm");
-            String slugarnacimiento = request.getParameter("idlugarnacimiento");
-            String slugarexpediciond = request.getParameter("idlugarexpedicion");
-            String slugarresidencia = request.getParameter("idlugarresidencia");
-            String sfechanacimiento = request.getParameter("fechanacimiento");
-            String sfechaexpediciond = request.getParameter("fechaexpediciond");
-            String sidestadocivil = request.getParameter("idestadocivil");
-            String sdisponibilidadviaje = request.getParameter("disponibilidadviaje");
-            String sdireccion = request.getParameter("direccion");
-            String stelefono = request.getParameter("telefono");
-            String scorreo = request.getParameter("correo");
-            String sfoto = request.getParameter("foto");
-
-            // Preparación de la lista de objetos a retornar
-            ArrayList<OHojadevida> lista = new ArrayList<OHojadevida>();
-            int totalPaginas = 0;
-            int totalRegistros = 0;
 
             NHojadevida nHojadevida = new NHojadevida();
             OHojadevida oHojadevida = new OHojadevida();
-            
-            // Para realizar la acción de la 1 a la 3
-            if (sAccion.equals(SUtilidades.INSERTAR) || sAccion.equals(SUtilidades.MODIFICAR)
-                    || sAccion.equals(SUtilidades.BORRAR)) {
-                // Validación de campos vacios
-                if ( !sAccion.equals(SUtilidades.BORRAR) && (sidtipodedocumento == null || sidtipodedocumento.length() == 0 
-                        || snumerodocumento == null || snumerodocumento.length() == 0 || sprimerapellido == null 
-                        || sprimerapellido.length() == 0 || ssegundoapellido == null || ssegundoapellido.length() == 0 
-                        || snombres == null || snombres.length() == 0 || sidgenero == null || sidgenero.length() == 0 
-                        || slibretamilitar == null || slibretamilitar.length() == 0 || sdistritolm == null 
-                        || sdistritolm.length() == 0 || slugarnacimiento == null || slugarnacimiento.length() == 0 
-                        || slugarexpediciond == null || slugarexpediciond.length() == 0 || slugarresidencia == null 
-                        || slugarresidencia.length() == 0 || sfechanacimiento == null || sfechanacimiento.length() == 0 
-                        || sfechaexpediciond == null || sfechaexpediciond.length() == 0 || sidestadocivil == null 
-                        || sidestadocivil.length() == 0 || sdireccion == null || sdireccion.length() == 0 
+
+            // Para Insertar, Modificar o Borrar
+            if (sAccion == SUtilidades.ACCIONINSERTAR
+                    || sAccion == SUtilidades.ACCIONACTUALIZAR
+                    || sAccion == SUtilidades.ACCIONBORRAR) {
+                // Se capturan los datos enviados por la capa vista
+                String sidhojadevida = request.getParameter("idhojadevida");
+                String sidtipodedocumento = request.getParameter("idtipodedocumento");
+                String snumerodocumento = request.getParameter("numerodocumento");
+                String sprimerapellido = request.getParameter("primerapellido");
+                String ssegundoapellido = request.getParameter("segundoapellido");
+                String snombres = request.getParameter("nombres");
+                String sidgenero = request.getParameter("idgenero");
+                String slibretamilitar = request.getParameter("libretamilitar");
+                String sdistritolm = request.getParameter("distritolm");
+                String slugarnacimiento = request.getParameter("idlugarnacimiento");
+                String slugarexpediciond = request.getParameter("idlugarexpedicion");
+                String slugarresidencia = request.getParameter("idlugarresidencia");
+                String sfechanacimiento = request.getParameter("fechanacimiento");
+                String sfechaexpediciond = request.getParameter("fechaexpediciond");
+                String sidestadocivil = request.getParameter("idestadocivil");
+                String sdisponibilidadviaje = request.getParameter("disponibilidadviaje");
+                String sdireccion = request.getParameter("direccion");
+                String stelefono = request.getParameter("telefono");
+                String scorreo = request.getParameter("correo");
+                String sfoto = request.getParameter("foto");
+
+                // Validación de campos vacios excepto para borrar
+                if (sAccion != SUtilidades.ACCIONBORRAR && (sidtipodedocumento == null || sidtipodedocumento.length() == 0
+                        || snumerodocumento == null || snumerodocumento.length() == 0 || sprimerapellido == null
+                        || sprimerapellido.length() == 0 || ssegundoapellido == null || ssegundoapellido.length() == 0
+                        || snombres == null || snombres.length() == 0 || sidgenero == null || sidgenero.length() == 0
+                        || slibretamilitar == null || slibretamilitar.length() == 0 || sdistritolm == null
+                        || sdistritolm.length() == 0 || slugarnacimiento == null || slugarnacimiento.length() == 0
+                        || slugarexpediciond == null || slugarexpediciond.length() == 0 || slugarresidencia == null
+                        || slugarresidencia.length() == 0 || sfechanacimiento == null || sfechanacimiento.length() == 0
+                        || sfechaexpediciond == null || sfechaexpediciond.length() == 0 || sidestadocivil == null
+                        || sidestadocivil.length() == 0 || sdireccion == null || sdireccion.length() == 0
                         || stelefono == null || stelefono.length() == 0 || scorreo == null || scorreo.length() == 0)) {
-                    tipoMensaje = 4;
+                    tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
                     mensaje = "Todos los campos son obligatorios";
                     modelo = Json.createObjectBuilder()
                             .add("tipoMensaje", tipoMensaje)
                             .add("mensaje", mensaje)
                             .build();
                     jsEscritor.writeObject(modelo);
-                } else {
+                } else { // Si los datos están completos
                     int iidhojadevida = 0;
-                    if(!sAccion.equals(SUtilidades.INSERTAR)){
+                    if (sAccion != SUtilidades.ACCIONINSERTAR) {
                         try {
                             iidhojadevida = Integer.parseInt(sidhojadevida);
                         } catch (NumberFormatException nfe) {
-                            System.err.println("Error al convertir: idhojadevida en int en el servlet SHojadevida");
+                            LOG.log(Level.WARNING, "Error al convertir: idhojadevida en int en el servlet SHojadevida");
                         }
                     }
+                    
+                    // Variables para crear el objeto Hoja de Vida
                     short iidtipodedocumento = 0;
-                    try {
-                        iidtipodedocumento = Short.parseShort(sidtipodedocumento);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: idtipodedocumento en Short  en el servlet SHojadevida");
-                    }
                     short iidgenero = 0;
-                    try {
-                        iidgenero = Short.parseShort(sidgenero);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: idgenero en Short  en el servlet SHojadevida");
-                    }
                     short ilugarnacimiento = 0;
-                    try {
-                        ilugarnacimiento = Short.parseShort(slugarnacimiento);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: lugarnacimiento en Short  en el servlet SHojadevida");
-                    }
                     short ilugarexpediciond = 0;
-                    try {
-                        ilugarexpediciond = Short.parseShort(slugarexpediciond);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: lugarexpediciond en Short  en el servlet SHojadevida");
-                    }
                     short ilugarresidencia = 0;
-                    try {
-                        ilugarresidencia = Short.parseShort(slugarresidencia);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: lugarresidencia en Short  en el servlet SHojadevida");
-                    }
                     Calendar cfechanacimiento = new GregorianCalendar();
-                    try {
-                        cfechanacimiento.setTime(sdf.parse(sfechanacimiento));
-                    } catch (ParseException pe) {
-                        LOG.log(Level.INFO, "Error al convertir: sfechanacimiento en fecha en el Servlet SHojadevida");
-                    } catch (NullPointerException npe){
-                        LOG.log(Level.INFO, "Error al convertir: sfechanacimiento en fecha en el Servlet SHojadevida");
-                    }
                     Calendar cfechaexpediciond = new GregorianCalendar();
-                    try {
-                        cfechaexpediciond.setTime(sdf.parse(sfechaexpediciond));
-                    } catch (ParseException pe) {
-                        LOG.log(Level.INFO, "Error al convertir: sfechanacimiento en fecha en el Servlet SHojadevida");
-                    } catch (NullPointerException npe){
-                        LOG.log(Level.INFO, "Error al convertir: sfechanacimiento en fecha en el Servlet SHojadevida");
-                    }
                     short iidestadocivil = 0;
-                    try {
-                        iidestadocivil = Short.parseShort(sidestadocivil);
-                    } catch (NumberFormatException nfe) {
-                        System.err.println("Error al convertir: idestadocivil en Short  en el servlet SHojadevida");
-                    }
                     boolean bdisponibilidadviaje = sdisponibilidadviaje != null;
 
+                    if (sAccion != SUtilidades.ACCIONBORRAR) {
+                        try {
+                            iidtipodedocumento = Short.parseShort(sidtipodedocumento);
+                            iidgenero = Short.parseShort(sidgenero);
+                            ilugarnacimiento = Short.parseShort(slugarnacimiento);
+                            ilugarexpediciond = Short.parseShort(slugarexpediciond);
+                            ilugarresidencia = Short.parseShort(slugarresidencia);
+                            cfechanacimiento.setTime(sdf.parse(sfechanacimiento));
+                            cfechaexpediciond.setTime(sdf.parse(sfechaexpediciond));
+                            iidestadocivil = Short.parseShort(sidestadocivil);
+                        } catch (NumberFormatException nfe) {
+                            LOG.log(Level.WARNING, "Error al convertir un tipo de dato en SHojadevida. %s",nfe.getMessage());
+                        } catch (ParseException pe){
+                            LOG.log(Level.WARNING, "Error al convertir un tipo de dato en SHojadevida. %s",pe.getMessage());
+                        } catch (NullPointerException npe){
+                            LOG.log(Level.WARNING, "Error en un tipo de dato nulo en SHojadevida. %s",npe.getMessage());
+                        }
+                    }
+                    
                     // Para realizar cualquier accion: insertar, modificar o borrar
-                    oHojadevida = new OHojadevida(iidhojadevida, iidtipodedocumento, snumerodocumento, sprimerapellido, ssegundoapellido, snombres, iidgenero, slibretamilitar, sdistritolm, ilugarnacimiento, ilugarexpediciond, ilugarresidencia, cfechanacimiento, cfechaexpediciond, iidestadocivil, bdisponibilidadviaje, sdireccion, stelefono, scorreo, sfoto);
+                    oHojadevida = new OHojadevida(iidhojadevida, iidtipodedocumento,
+                            snumerodocumento, sprimerapellido,
+                            ssegundoapellido, snombres, iidgenero,
+                            slibretamilitar, sdistritolm, ilugarnacimiento,
+                            ilugarexpediciond, ilugarresidencia, cfechanacimiento,
+                            cfechaexpediciond, iidestadocivil, bdisponibilidadviaje,
+                            sdireccion, stelefono, scorreo, sfoto);
 
-                    int respuesta = 0;
+                    int respuesta;
+                    tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA; // Inicia en warning porque es la mayor cantidad de opciones
                     try {
                         respuesta = nHojadevida.ejecutarSQL(sAccion, oHojadevida, credencial);
-                        tipoMensaje = 3; // Inicia en warning porque es la mayor cantidad de opciones
-                        if (respuesta == -2) {
+                        if (respuesta == SUtilidades.MSG_BD_ERROR_UK) {
                             mensaje = "Error de llave duplicada";
                         }
-                        if (respuesta == -1) {
+                        if (respuesta == SUtilidades.MSG_BD_ERROR_FK) {
                             mensaje = "Error de violación de llave foranea. Problema de dependencias.";
                         }
-                        if (respuesta == 0 || respuesta < -1) {
+                        if (respuesta == SUtilidades.MSG_BD_ERROR) {
                             mensaje = "No se encontró el registro en la BD, o error desconocido de BD.";
                         }
                         if (respuesta > 0) {
                             mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                            tipoMensaje = 1;
+                            tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
                         }
                     } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = 3;
+                        tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
                         mensaje = eg.getMessage();
                     }
                     modelo = Json.createObjectBuilder()
@@ -241,7 +198,42 @@ public class SHojadevida extends HttpServlet {
                     jsEscritor.writeObject(modelo);
                 }
             }
-            if (sAccion == 4) { // Consultar
+            
+            if (sAccion == SUtilidades.ACCIONCONSULTAR) {
+                String tipoConsulta = request.getParameter("tipoConsulta");
+                short sTipoConsulta;
+                try {
+                    sTipoConsulta = Short.parseShort(tipoConsulta);
+                } catch (NumberFormatException nfe) {
+                    sTipoConsulta = 0;
+                }
+
+                // Preparación de la lista de objetos a retornar
+                ArrayList<OHojadevida> lista = new ArrayList<OHojadevida>();
+                int totalPaginas = 0;
+                int totalRegistros = 0;
+
+                // Variables de paginación
+                String pagina = request.getParameter("pag");
+                String limite = request.getParameter("lim");
+                String columnaOrden = request.getParameter("cor");
+                String tipoOrden = request.getParameter("tor");
+
+                if (tipoOrden == null || tipoOrden.length() == 0) {
+                    tipoOrden = "asc";
+                }
+
+                int iPagina, iLimite, iColumnaOrden;
+                try {
+                    iPagina = Integer.parseInt(pagina);
+                    iLimite = Integer.parseInt(limite);
+                    iColumnaOrden = Integer.parseInt(columnaOrden);
+                } catch (NumberFormatException nfe) {
+                    iPagina = 1;
+                    iLimite = 5;
+                    iColumnaOrden = 1;
+                }
+
                 try {
                     totalRegistros = nHojadevida.getCantidadRegistros("hojadevida");
                     if (totalRegistros > 0) {
@@ -252,11 +244,11 @@ public class SHojadevida extends HttpServlet {
                     if (iPagina > totalPaginas) {
                         iPagina = totalPaginas;
                     }
-                    lista = nHojadevida.consultar((short) 4, sTipoConsulta, oHojadevida, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
-                    tipoMensajeLista = 1;
+                    lista = nHojadevida.consultar(sAccion, sTipoConsulta, oHojadevida, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                    tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
                     mensajeLista = "Cargue de consulta realizado correctamente.";
                 } catch (ExcepcionGeneral eg) {
-                    tipoMensajeLista = 3;
+                    tipoMensajeLista = SUtilidades.TIPO_MSG_ERROR;
                     mensajeLista = eg.getMessage();
                 }
 

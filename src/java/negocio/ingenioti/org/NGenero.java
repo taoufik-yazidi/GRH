@@ -10,7 +10,7 @@ public class NGenero extends NGeneralidades {
 
     private final String MIOBJETO = "PARGEN";
 
-    public int ejecutarSQL(short ta, OGenero obj, OCredencial cre) throws ExcepcionGeneral {
+    public int ejecutarSQL(byte ta, OGenero obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
@@ -51,10 +51,10 @@ public class NGenero extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<OGenero> consultar(short ta, short tc, OGenero obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<OGenero> consultar(short tc, OGenero obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<OGenero> lista = new ArrayList<OGenero>();
-        if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
+        if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 conectar("select * from fn_genero_sel(?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);

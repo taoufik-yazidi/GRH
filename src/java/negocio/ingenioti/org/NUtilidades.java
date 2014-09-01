@@ -3,7 +3,10 @@ package negocio.ingenioti.org;
 import org.postgresql.ds.PGPoolingDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletContext;
+
 
 /**
  * NUtilidades.java
@@ -17,10 +20,18 @@ public final class NUtilidades {
     private static PGPoolingDataSource piscina = null;
     private static ServletContext contextoApp;
     private static boolean creado = false;
+    
     private static String DIRECTORIO_IMAGENES;
-    public static final byte MENSAJE_ERROR = 0;
-    public static final byte MENSAJE_INFO  = 1;
-    public static final byte MENSAJE_CORRECTO = 2;
+    
+    public static final byte MSG_BD_ERROR = 0;
+    public static final byte MSG_BD_ERROR_FK = -1;
+    public static final byte MSG_BD_ERROR_UK = -2;
+    public static final byte ACCIONINSERTAR = 1;
+    public static final byte ACCIONACTUALIZAR = 2;
+    public static final byte ACCIONBORRAR = 3;
+    public static final byte ACCIONCONSULTAR = 4;
+    public static final byte CONSULTA_TODOS = 0;
+    public static final byte CONSULTA_ID = 1;
     
     public static boolean contextoCreado(){
         return creado;
@@ -73,8 +84,30 @@ public final class NUtilidades {
         return conexion;
     }
     
-    protected static boolean tienePermiso(Short tipoDeAccion, Short perfil, String objeto){
+    public static boolean tienePermiso(byte tipoDeAccion, Short perfil, String objeto){
         NAutenticacion autenticacion = new NAutenticacion();
         return autenticacion.tienePermiso(tipoDeAccion, perfil, objeto);
+    }
+    
+    private static boolean isLogServerActivo(){
+        if(creado){
+            if(contextoApp.getInitParameter("activar_log_server").equals("1")){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Método generaLogServer permite generar el log del servidor si está configurado en el web.xml
+     * @param logger
+     * @param level
+     * @param mensaje Es el mensaje enviado que se escribe en el servlet
+     * @param msgexcepcion  Es el mensaje de excepción generado por el catch
+     */
+    public static void generaLogServer(Logger logger, Level level, String mensaje, Object msgexcepcion){
+        if(isLogServerActivo()){
+            logger.log(level, mensaje, msgexcepcion);
+        }
     }
 }

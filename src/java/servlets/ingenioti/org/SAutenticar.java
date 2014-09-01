@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package servlets.ingenioti.org;
 
 import java.io.IOException;
@@ -14,17 +10,12 @@ import javax.servlet.http.HttpSession;
 import objetos.ingenioti.org.OCredencial;
 import negocio.ingenioti.org.NAutenticacion;
 
-/**
- *
- * @author Alexys
- */
 @WebServlet(name = "SAutenticar", urlPatterns = {"/SAutenticar"})
 public class SAutenticar extends HttpServlet {
 
     /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
      *
      * @param request servlet request
      * @param response servlet response
@@ -33,25 +24,25 @@ public class SAutenticar extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("text/html;charset=UTF-8");
         HttpSession sesion = request.getSession(true);
-        
-        String mensaje = "";
+
+        String mensaje;
         String codigo = request.getParameter("txtUsr");
-        String clave  = request.getParameter("txtPwd");
+        String clave = request.getParameter("txtPwd");
         String ipCliente = request.getRemoteAddr();
         String hostCliente = request.getRemoteHost();
-        
+
         NAutenticacion autenticar = new NAutenticacion(codigo, clave, ipCliente, hostCliente);
         OCredencial credencial = autenticar.autenticar();
-        if(credencial==null || credencial.getId()<=0){
+        if (credencial == null || credencial.getId() <= 0) {
             mensaje = "Usuario o contraseña Inválidos!!!";
             request.setAttribute("mensaje", mensaje);
             SUtilidades.irAPagina("/index.jsp", request, response, request.getServletContext());
         } else { // Autenticado correctamente
             sesion.setAttribute("credencial", credencial);
-            mensaje = "Bienvenido: "+credencial.getUsuario().getNombre();
+            mensaje = "Bienvenido: " + credencial.getUsuario().getNombre();
             request.setAttribute("mensaje", mensaje.trim());
             SUtilidades.irAPagina("/inicio.jsp", request, response, request.getServletContext());
         }
@@ -59,8 +50,7 @@ public class SAutenticar extends HttpServlet {
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP
-     * <code>GET</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -74,8 +64,7 @@ public class SAutenticar extends HttpServlet {
     }
 
     /**
-     * Handles the HTTP
-     * <code>POST</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response

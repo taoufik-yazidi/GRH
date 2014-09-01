@@ -20,6 +20,13 @@ public class ODepartamentos implements IObjetoHci {
         this.municipio = new OMunicipios();
     }
 
+    /* Crea un departamento sin municipio */
+    public ODepartamentos(short iddepartamento, String codigo, String nombre){
+         this.iddepartamento = iddepartamento;
+        this.codigo = codigo;
+        this.nombre = nombre;
+    }
+    
     /* Crea un departamento con una lista de municipios */
     public ODepartamentos(short iddepartamento, String codigo, String nombre, ArrayList<OMunicipios> municipios) {
         this.iddepartamento = iddepartamento;

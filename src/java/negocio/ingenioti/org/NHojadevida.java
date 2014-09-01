@@ -15,12 +15,12 @@ public class NHojadevida extends NGeneralidades {
 
     private final String MIOBJETO = "NEGHDV";
 
-    public int ejecutarSQL(short ta, OHojadevida obj, OCredencial cre) throws ExcepcionGeneral {
+    public int ejecutarSQL(byte ta, OHojadevida obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 switch (ta) {
-                    case 1: // Insertar
+                    case NUtilidades.ACCIONINSERTAR: 
                         conectar("select * from fn_hojadevida_ins(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         sentenciaProcedimiento.setShort(1, obj.getTipodedocumento().getIdtipodedocumento());
                         sentenciaProcedimiento.setString(2, obj.getNumerodocumento());
@@ -42,7 +42,7 @@ public class NHojadevida extends NGeneralidades {
                         sentenciaProcedimiento.setString(18, obj.getCorreo());
                         sentenciaProcedimiento.setString(19, obj.getFoto());
                         break;
-                    case 2: //ACTUALIZAR
+                    case NUtilidades.ACCIONACTUALIZAR:
                         conectar("select * from fn_hojadevida_upd(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         sentenciaProcedimiento.setInt(1, obj.getIdhojadevida());
                         sentenciaProcedimiento.setShort(2, obj.getTipodedocumento().getIdtipodedocumento());
@@ -65,7 +65,7 @@ public class NHojadevida extends NGeneralidades {
                         sentenciaProcedimiento.setString(19, obj.getCorreo());
                         sentenciaProcedimiento.setString(20, obj.getFoto());
                         break;
-                    case 3: //BORRAR
+                    case NUtilidades.ACCIONBORRAR: 
                         conectar("select * from fn_hojadevida_del(?)");
                         sentenciaProcedimiento.setInt(1, obj.getIdhojadevida());
                         break;
@@ -90,7 +90,9 @@ public class NHojadevida extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<OHojadevida> consultar(short ta, short tc, OHojadevida obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<OHojadevida> consultar(byte ta, short tc, OHojadevida obj, 
+                                            OCredencial cre, int pagina, int limite, 
+                                            int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<OHojadevida> lista = new ArrayList<OHojadevida>();
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {

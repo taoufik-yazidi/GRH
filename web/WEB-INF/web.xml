@@ -41,4 +41,8 @@
         <param-name>directorioImagenes</param-name>
         <param-value>E:\Imagenes\</param-value>
     </context-param>
+    <context-param>
+        <param-name>activar_log_server</param-name>
+        <param-value>1</param-value>
+    </context-param>
 </web-app>

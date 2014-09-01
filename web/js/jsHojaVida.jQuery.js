@@ -1,42 +1,12 @@
 ;
 (function($) {
     $.fn.jsHojaVida = function() {
-        var cargaSelect = function(servlet, idCampo, valorCampo, select) {
-            $.ajax({
-                url: servlet,
-                type: 'post',
-                dataType: 'json',
-                data: {accion: 4, pag: 1, lim: -1, cor: 3, tor: 'asc'},
-                success: function(respuesta) {
-                    var miHTML = '';
-                    if (respuesta['tipoMensajeLista'] !== 1) {
-                        miHTML += '<div class="alert alert-warning">';
-                        miHTML += '<span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;';
-                        miHTML += respuesta['mensajeLista'];
-                        miHTML += '</div>';
-                        $('#unDiv').html(miHTML);
-                    } else {
-                        var objetos = respuesta['lista'];
-                        $.each(objetos, function(indice, valor) {
-                            miHTML += '<option value="';
-                            miHTML += valor[idCampo];
-                            miHTML += '">';
-                            miHTML += valor[valorCampo];
-                            miHTML += '</option>';
-                        });
-                        for (var desplegable in select) {
-                            $(select[desplegable]).html(miHTML);
-                        }
-                    }
-                }
-            });
-        };
         var filtraMunicipios = function(iddpto, destino) {
             $.ajax({
-                url: 'SMunicipios',
+                url: 'SMunicipiosSel',
                 type: 'post',
                 dataType: 'json',
-                data: {accion: 4, tipoConsulta: 2, iddepartamento: iddpto, pag: 1, lim: -1, cor: 6, tor: 'asc'},
+                data: {tipoConsulta: 2, iddepartamento: iddpto, pag: 1, lim: -1, cor: 6, tor: 'asc'},
                 success: function(respuesta) {
                     var miHTML = '';
                     if (respuesta['tipoMensajeLista'] !== 1) {
@@ -60,13 +30,6 @@
             });
         };
 
-        var departamentos = ['#iddeptonacimiento', '#iddeptoexpedicion', '#iddeptoresidencia'];
-
-        cargaSelect('STiposDeDocumento', 'idtipodedocumento', 'tipodedocumento', ['#idtipodedocumento']);
-        cargaSelect('SGenero', 'idgenero', 'genero', ['#idgenero']);
-        cargaSelect('SDepartamentos', 'iddepartamento', 'nombre', departamentos);
-        cargaSelect('SEstadocivil', 'idestadocivil', 'nombre', ['#idestadocivil']);
-
         // Actualización de los municipios cuando cambian de departamento
         $('#iddeptonacimiento').on('change', function() {
             filtraMunicipios($(this).val(), '#idlugarnacimiento');
@@ -78,8 +41,9 @@
             filtraMunicipios($(this).val(), '#idlugarresidencia');
         });
 
+        var departamentos = ['#iddeptonacimiento', '#iddeptoexpedicion', '#iddeptoresidencia'];
         for (dep in departamentos) {
-            $(departamentos[dep]).change();
+           $(departamentos[dep]).trigger('change');
         }
 
         // Para mostrar u ocultar el botón de subir archivo
@@ -113,7 +77,7 @@
         });
 
         $('#btnCargaFoto').on('click', function(event) {
-            event.preventDefault(); 
+            event.preventDefault();
             // Create a formdata object and add the files
             var data = new FormData();
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package servlets.ingenioti.org;
 
 import excepciones.ingenioti.org.ExcepcionGeneral;
@@ -22,17 +17,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import objetos.ingenioti.org.OCredencial;
 import negocio.ingenioti.org.NMunicipios;
+import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.ODepartamentos;
 import objetos.ingenioti.org.OMunicipios;
 
-/**
- *
- * @author Alexys
- */
-@WebServlet(name = "SMunicipios", urlPatterns = {"/SMunicipios"})
-public class SMunicipios extends HttpServlet {
+@WebServlet(name = "SMunicipiosSel", urlPatterns = {"/SMunicipiosSel"})
+public class SMunicipiosSel extends HttpServlet {
+
+    private static final Logger LOG = Logger.getLogger(SMunicipiosSel.class.getName());
+    private final byte CONSULTA_DEPARTAMENTO = 2;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -49,102 +43,117 @@ public class SMunicipios extends HttpServlet {
         response.setContentType("application/json");
         HttpSession sesion = request.getSession();
         if (SUtilidades.autenticado(sesion)) {
-            // Elementos de respuesta
-            String mensaje = "";
-            short tipoMensaje;
-            // Objeto Json de respuesta
-            JsonObject modelo;
+            String mensajeLista;
+            byte tipoMensajeLista;
+            JsonObject jsLista;
             JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String accion = request.getParameter("accion");
-            byte sAccion;
+
+            String tipoConsulta = request.getParameter("tipoConsulta");
+            short sTipoConsulta = 0;
             try {
-                sAccion = Byte.parseByte(accion);
+                sTipoConsulta = Short.parseShort(tipoConsulta);
             } catch (NumberFormatException nfe) {
-                sAccion = 0;
             }
 
             String sidmunicipio = request.getParameter("idunico");
+            String siddepartamento = request.getParameter("iddepartamento");
+
             short iidmunicipio = 0;
-            if (sAccion != SUtilidades.ACCIONINSERTAR) {
+            if (sTipoConsulta == SUtilidades.CONSULTA_ID) {
                 try {
                     iidmunicipio = Short.parseShort(sidmunicipio);
                 } catch (NumberFormatException nfe) {
                     SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idmunicipio en Short: %s", sidmunicipio);
                 }
             }
-            // Se obtienen los campos enviados por la vista
-            String siddepartamento = request.getParameter("iddepartamento");
-            String scodigo = request.getParameter("codigo");
-            String snombre = request.getParameter("nombre");
             short iiddepartamento = 0;
-            try {
-                iiddepartamento = Short.parseShort(siddepartamento);
-            } catch (NumberFormatException nfe) {
-                SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir: iddepartamento en Short %s", siddepartamento);
+            if (sTipoConsulta == CONSULTA_DEPARTAMENTO) {
+                try {
+                    iiddepartamento = Short.parseShort(siddepartamento);
+                } catch (NumberFormatException nfe) {
+                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: iddepartamento en Short %s", siddepartamento);
+                }
             }
-            
-            // Para realizar cualquier accion: insertar, modificar o borrar
             NMunicipios nMunicipios = new NMunicipios();
             ODepartamentos oDepartamentos = new ODepartamentos();
             oDepartamentos.setIddepartamento(iiddepartamento);
-            OMunicipios oMunicipios = new OMunicipios(iidmunicipio, scodigo, snombre);
+            OMunicipios oMunicipios = new OMunicipios(iidmunicipio, null, null);
             oDepartamentos.addMunicipio(oMunicipios);
 
-            // Para realizar la acción de la 1 a la 3
-            //if (sAccion > 0 && sAccion < 4) {
-            if (sAccion == SUtilidades.ACCIONINSERTAR
-                    || sAccion == SUtilidades.ACCIONACTUALIZAR
-                    || sAccion == SUtilidades.ACCIONBORRAR) {
+            // Variables de paginación
+            String pagina = request.getParameter("pag");
+            String limite = request.getParameter("lim");
+            String columnaOrden = request.getParameter("cor");
+            String tipoOrden = request.getParameter("tor");
 
-                // Validación de campos vacios
-                if (sAccion != SUtilidades.ACCIONBORRAR
-                        && (siddepartamento == null || siddepartamento.length() == 0
-                        || scodigo == null || scodigo.length() == 0 || snombre == null
-                        || snombre.length() == 0)) {
-                    mensaje = "Todos los campos son obligatorios";
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", SUtilidades.TIPO_MSG_ADVERTENCIA)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                } else {
-
-                    int respuesta = 0;
-                    try {
-                        respuesta = nMunicipios.ejecutarSQL(sAccion, oDepartamentos, credencial);
-                        tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA; // Inicia en warning porque es la mayor cantidad de opciones
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_UK) {
-                            mensaje = "Error de llave duplicada";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_FK) {
-                            mensaje = "Error de violación de llave foranea. Problema de dependencias.";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR) {
-                            mensaje = "No se encontró el registro en la BD, o error desconocido de BD.";
-                        }
-                        if (respuesta > 0) {
-                            mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                            tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
-                        }
-                    } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
-                        mensaje = eg.getMessage();
-                    }
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                }
+            if (tipoOrden == null || tipoOrden.length() == 0) {
+                tipoOrden = "asc";
             }
 
+            // Preparación de la lista de objetos a retornar
+            ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
+            int totalPaginas;
+            int totalRegistros;
+
+            int iPagina, iLimite, iColumnaOrden;
+            try {
+                iPagina = Integer.parseInt(pagina);
+                iLimite = Integer.parseInt(limite);
+                iColumnaOrden = Integer.parseInt(columnaOrden);
+            } catch (NumberFormatException nfe) {
+                iPagina = 1;
+                iLimite = 5;
+                iColumnaOrden = 1;
+            }
+            totalRegistros = nMunicipios.getCantidadRegistros("municipios");
+            if (totalRegistros > 0) {
+                totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
+            } else {
+                totalPaginas = 0;
+            }
+            if (iPagina > totalPaginas) {
+                iPagina = totalPaginas;
+            }
+
+            try {
+                lista = nMunicipios.consultar(sTipoConsulta, oDepartamentos, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
+                mensajeLista = "Cargue de consulta realizado correctamente.";
+            } catch (ExcepcionGeneral eg) {
+                tipoMensajeLista = SUtilidades.TIPO_MSG_ERROR;
+                mensajeLista = eg.getMessage();
+            }
+
+            jsArray = Json.createArrayBuilder();
+            for (ODepartamentos obj : lista) {
+                for (ODepartamentos tipoTabla : obj.listaTipoTabla()) {
+                    JsonObject temp = Json.createObjectBuilder()
+                            .add("idmunicipio", tipoTabla.getMunicipio().getIdmunicipio())
+                            .add("iddepartamento", tipoTabla.getIddepartamento())
+                            .add("codigomunic", tipoTabla.getMunicipio().getCodigo())
+                            .add("nombremunic", tipoTabla.getMunicipio().getNombre())
+                            .add("codigodepto", tipoTabla.getCodigo())
+                            .add("nombredepto", tipoTabla.getNombre())
+                            .build();
+                    jsArray.add(temp);
+                }
+            }
+            jsLista = Json.createObjectBuilder()
+                    .add("tipoMensajeLista", tipoMensajeLista)
+                    .add("mensajeLista", mensajeLista)
+                    .add("registros", totalRegistros)
+                    .add("paginas", totalPaginas)
+                    .add("lista", jsArray)
+                    .build();
+            jsEscritor.writeObject(jsLista);
             jsEscritor.close();
 
             String jsObjeto = sEscritor.toString();
+
             PrintWriter out = response.getWriter();
             try {
                 out.println(jsObjeto);
@@ -155,7 +164,6 @@ public class SMunicipios extends HttpServlet {
             SUtilidades.irAPagina("/index.jsp", request, response, getServletContext());
         }
     }
-    private static final Logger LOG = Logger.getLogger(SMunicipios.class.getName());
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

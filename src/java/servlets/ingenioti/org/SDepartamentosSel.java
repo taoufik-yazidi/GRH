@@ -4,6 +4,7 @@ import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
@@ -19,10 +20,11 @@ import javax.servlet.http.HttpSession;
 import negocio.ingenioti.org.NDepartamentos;
 import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.ODepartamentos;
-import objetos.ingenioti.org.OMunicipios;
 
-@WebServlet(name = "SDepartamentos", urlPatterns = {"/SDepartamentos"})
-public class SDepartamentos extends HttpServlet {
+@WebServlet(name = "SDepartamentosSel", urlPatterns = {"/SDepartamentosSel"})
+public class SDepartamentosSel extends HttpServlet {
+
+    private static final Logger LOG = Logger.getLogger(SDepartamentosSel.class.getName());
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,86 +40,103 @@ public class SDepartamentos extends HttpServlet {
 
         response.setContentType("application/json");
         HttpSession sesion = request.getSession();
+
         if (SUtilidades.autenticado(sesion)) {
-            // Elementos de respuesta
-            String mensaje = "";
-            short tipoMensaje;
-            JsonObject modelo;
+            String mensajeLista;
+            byte tipoMensajeLista;
+
+            JsonObject jsLista;
+            JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String accion = request.getParameter("accion");
-            byte sAccion;
+            String tipoConsulta = request.getParameter("tipoConsulta");
+            byte sTipoConsulta = 0;
             try {
-                sAccion = Byte.parseByte(accion);
-            } catch (NumberFormatException nfe) {
-                sAccion = 0;
-            }
+                sTipoConsulta = Byte.parseByte(tipoConsulta);
+            } catch (NumberFormatException nfe) {}
 
             String siddepartamento = request.getParameter("iddepartamento");
-            String scodigo = request.getParameter("codigo");
-            String snombre = request.getParameter("nombre");
             short iiddepartamento = 0;
-            if (sAccion != SUtilidades.ACCIONINSERTAR) {
+            if (sTipoConsulta == SUtilidades.CONSULTA_ID) {
                 try {
                     iiddepartamento = Short.parseShort(siddepartamento);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: iddepartamento en Short %s", siddepartamento);
+                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: iddepartamento en Short: %s", siddepartamento);
                 }
             }
 
-            // Para realizar cualquier accion: insertar, modificar o borrar
+            // Variables de paginación
+            String pagina = request.getParameter("pag");
+            String limite = request.getParameter("lim");
+            String columnaOrden = request.getParameter("cor");
+            String tipoOrden = request.getParameter("tor");
+
+            if (tipoOrden == null || tipoOrden.length() == 0) {
+                tipoOrden = "asc";
+            }
+
+            int iPagina, iLimite, iColumnaOrden;
+            try {
+                iPagina = Integer.parseInt(pagina);
+                iLimite = Integer.parseInt(limite);
+                iColumnaOrden = Integer.parseInt(columnaOrden);
+            } catch (NumberFormatException nfe) {
+                iPagina = 1;
+                iLimite = 5;
+                iColumnaOrden = 1;
+            }
+
             NDepartamentos nDepartamentos = new NDepartamentos();
-            ODepartamentos oDepartamentos = new ODepartamentos(iiddepartamento, scodigo, snombre, (OMunicipios) null);
+            ODepartamentos oDepartamentos = new ODepartamentos(iiddepartamento, null, null);
 
-            // Insertar, modificar o borrar
-            if (sAccion == SUtilidades.ACCIONINSERTAR
-                    || sAccion == SUtilidades.ACCIONACTUALIZAR
-                    || sAccion == SUtilidades.ACCIONBORRAR) {
-                // Validación de campos vacios
-                if (sAccion != SUtilidades.ACCIONBORRAR && (scodigo == null || scodigo.length() == 0 || snombre == null || snombre.length() == 0)) {
-                    tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA;
-                    mensaje = "Todos los campos son obligatorios";
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                } else {
-                    int respuesta = 0;
-                    try {
-                        respuesta = nDepartamentos.ejecutarSQL(sAccion, oDepartamentos, credencial);
-                        tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA; // Inicia en warning porque es la mayor cantidad de opciones
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_UK) {
-                            mensaje = "Error de llave duplicada";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_FK) {
-                            mensaje = "Error de violación de llave foranea. Problema de dependencias.";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR) {
-                            mensaje = "No se encontró el registro en la BD, o error desconocido de BD.";
-                        }
-                        if (respuesta > 0) {
-                            mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                            tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
-                        }
-                    } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
-                        mensaje = eg.getMessage();
-                    }
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                }
+            // Preparación de la lista de objetos a retornar
+            ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
+            int totalPaginas;
+            int totalRegistros;
+
+            totalRegistros = nDepartamentos.getCantidadRegistros("departamentos");
+            if (totalRegistros > 0) {
+                totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
+            } else {
+                totalPaginas = 0;
+            }
+            if (iPagina > totalPaginas) {
+                iPagina = totalPaginas;
             }
 
+            try {
+                lista = nDepartamentos.consultar(sTipoConsulta, oDepartamentos, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
+                mensajeLista = "Cargue de consulta realizado correctamente.";
+            } catch (ExcepcionGeneral eg) {
+                tipoMensajeLista = SUtilidades.TIPO_MSG_ADVERTENCIA;
+                mensajeLista = eg.getMessage();
+            }
+
+            jsArray = Json.createArrayBuilder();
+            for (ODepartamentos obj : lista) {
+                JsonObject temp = Json.createObjectBuilder()
+                        .add("iddepartamento", obj.getIddepartamento())
+                        .add("codigo", obj.getCodigo())
+                        .add("nombre", obj.getNombre())
+                        .build();
+                jsArray.add(temp);
+            }
+            jsLista = Json.createObjectBuilder()
+                    .add("tipoMensajeLista", tipoMensajeLista)
+                    .add("mensajeLista", mensajeLista)
+                    .add("registros", totalRegistros)
+                    .add("paginas", totalPaginas)
+                    .add("lista", jsArray)
+                    .build();
+            jsEscritor.writeObject(jsLista);
             jsEscritor.close();
 
             String jsObjeto = sEscritor.toString();
             PrintWriter out = response.getWriter();
+
             try {
                 out.println(jsObjeto);
             } finally {
@@ -126,8 +145,8 @@ public class SDepartamentos extends HttpServlet {
         } else {
             SUtilidades.irAPagina("/index.jsp", request, response, getServletContext());
         }
+
     }
-    private static final Logger LOG = Logger.getLogger(SDepartamentos.class.getName());
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

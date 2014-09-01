@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -37,10 +39,11 @@ public class SContexto extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        
         response.setContentType("text/xml;charset=UTF-8");
         PrintWriter out = response.getWriter();
         String mensaje = "";
-        byte tipoMensaje = NUtilidades.MENSAJE_ERROR;
+        byte tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
         
         try { // Try que permite enviar el mensaje por medio del objeto out
             if(!NUtilidades.contextoCreado()){ // Si entra al sistema por primera vez se envía el contexto
@@ -54,15 +57,15 @@ public class SContexto extends HttpServlet {
                 sentencia = conexion.createStatement();
                 resultados = sentencia.executeQuery("select now()");
                 if(resultados.next()){
-                    tipoMensaje = NUtilidades.MENSAJE_CORRECTO;
+                    tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
                     mensaje = "Conexión correcta a la BD el: "+resultados.getString(1);
                 } else {
-                    tipoMensaje = NUtilidades.MENSAJE_INFO;
+                    tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA;
                     mensaje = "No hubo resultados al traer la fecha del servidor de BD";
                 }
             } catch (SQLException sqle){
-                System.out.println("Error al obtener la conexion en SContexto.java: "+sqle.getMessage());
-                tipoMensaje = NUtilidades.MENSAJE_ERROR;
+                SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al obtener la conexion en SContexto.java: %s", sqle.getMessage());
+                tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
                 mensaje = "Error al obtener la conexion en SContexto.java: "+sqle.getMessage();
             } finally {
                 if(resultados!=null){
@@ -90,6 +93,7 @@ public class SContexto extends HttpServlet {
             out.close();
         }
     }
+    private static final Logger LOG = Logger.getLogger(SContexto.class.getName());
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

@@ -100,41 +100,14 @@
                 </table>
             </div>
         </section>
+        <script src="js/eventoAjax.jQuery.js"></script>
+        <script src="js/cargarCombo.jQuery.js"></script>
         <script>
             $(document).on('ready', function() {
+                $(document).cargarCombo('SDepartamentos', 'iddepartamento', 'nombre', ['#iddepartamento']);
                 var nombres = ['ID Municipio', 'ID Departamento', 'Código', 'Municipio'];
                 var campos = ['#idunico', '#iddepartamento', '#codigo', '#nombre'];
                 $('#frmFormulario').eventoAjax('#btnGuardar', '#btnCancelar', '#unDiv', '#frmLista', '#msgLista', '#cuerpoLista', nombres, campos);
-                $.ajax({
-                    url: "SDepartamentos",
-                    type: "post",
-                    data: {accion:4,pag:1,lim:-1,cor:3,tor:"asc"},
-                    dataType: "json",
-                    success: function(respuesta){
-                        if(respuesta['tipoMensajeLista'] !== 1){ // Si no tiene permiso de leer los departamentos
-                            var miHtml = '<div class="alert alert-warning"><span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;';
-                            miHtml += respuesta['mensajeLista'];
-                            miHtml += '</div>';
-                            $('#unDiv').html(miHTML);
-                        } else {
-                            var objetos = respuesta['lista'];
-                            var miHTML = '';
-                            $.each(objetos,function(indice,valor){
-                                miHTML += '<option value="';
-                                miHTML += valor['iddepartamento'];
-                                miHTML += '">';
-                                miHTML += valor['nombre'];
-                                miHTML += ' - ';
-                                miHTML += valor['codigo'];
-                                miHTML += '</option>';
-                            });
-                            $('#iddepartamento').html(miHTML);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                        console.log(textStatus);
-                    }
-                });
             });
         </script>
     </body>

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonWriter;
 import javax.servlet.ServletException;
@@ -32,9 +31,9 @@ import org.apache.commons.io.FilenameUtils;
 @WebServlet(name = "SCargarArchivos", urlPatterns = {"/SCargarArchivos"})
 public class SCargarArchivos extends HttpServlet {
 
-    private String directorioImagenes = NUtilidades.getDirectorioImagenes();
+    private final String directorioImagenes = NUtilidades.getDirectorioImagenes();
     private static final Logger LOG = Logger.getLogger(SCargarArchivos.class.getName());
-    
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -48,65 +47,69 @@ public class SCargarArchivos extends HttpServlet {
             throws ServletException, IOException {
 
         response.setContentType("application/json");
-        
-        JsonObject modelo, jsLista;
+
+        JsonObject jsLista;
         StringWriter sEscritor = new StringWriter();
         JsonWriter jsEscritor = Json.createWriter(sEscritor);
         PrintWriter out = response.getWriter();
-        
+
         try {
             boolean ismultipart = ServletFileUpload.isMultipartContent(request);
-            if(!ismultipart){
-                
+            if (!ismultipart) {
+
             } else {
                 FileItemFactory fabrica = new DiskFileItemFactory();
                 ServletFileUpload carga = new ServletFileUpload(fabrica);
                 List items = null;
-                try{
+                try {
                     items = carga.parseRequest(request);
-                } catch (Exception e){
+                } catch (Exception e) {
                     LOG.log(Level.WARNING, e.getMessage());
                 }
-                Iterator iterador = items.iterator();
-                while(iterador.hasNext()){
-                    FileItem archivo = (FileItem)iterador.next();
-                    if(archivo.isFormField()){
-                        
-                    } else {
-                        String nombreArchivo = archivo.getName();
-                        if(nombreArchivo==null || nombreArchivo.length()==0){
-                            continue;
+                if (items != null) {
+                    Iterator iterador = items.iterator();
+                    while (iterador.hasNext()) {
+                        FileItem archivo = (FileItem) iterador.next();
+                        if (archivo.isFormField()) {
+
+                        } else {
+                            String nombreArchivo = archivo.getName();
+                            if (nombreArchivo == null || nombreArchivo.length() == 0) {
+                                continue;
+                            }
+                            String archivoReal = FilenameUtils.getName(nombreArchivo);
+                            File archivoCargado = checkExist(archivoReal);
+                            archivo.write(archivoCargado);
                         }
-                        String archivoReal = FilenameUtils.getName(nombreArchivo);
-                        File archivoCargado = checkExist(archivoReal);
-                        archivo.write(archivoCargado);
                     }
+                    jsLista = Json.createObjectBuilder()
+                            .add("mensaje", "Cargue de archivos OK")
+                            .build();
+                    jsEscritor.writeObject(jsLista);
+                    jsEscritor.close();
+                    String jsObjeto = sEscritor.toString();
+                    out.println(jsObjeto);
                 }
-                jsLista = Json.createObjectBuilder()
-                        .add("mensaje", "Cargue de archivos OK")
-                        .build();
-                jsEscritor.writeObject(jsLista);
-                jsEscritor.close();
-                String jsObjeto = sEscritor.toString();
-                out.println(jsObjeto);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             LOG.log(Level.WARNING, e.getMessage());
         } finally {
             out.close();
         }
     }
 
-    private File checkExist(String archivo){
-        File f = new File(directorioImagenes+"/"+archivo);
-        if(f.exists()){
+    private File checkExist(String archivo) {
+        File f = new File(directorioImagenes + "/" + archivo);
+        if (f.exists()) {
             StringBuilder sb = new StringBuilder(archivo);
-            sb.insert(sb.lastIndexOf("."),"-"+new Date().getTime());
-            f = new File(directorioImagenes+"/"+sb.toString());
+            sb.insert(sb.lastIndexOf("."), "-" + new Date().getTime());
+            f = new File(directorioImagenes + "/" + sb.toString());
         }
         return f;
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+
     /**
      * Handles the HTTP <code>GET</code> method.
      *

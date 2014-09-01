@@ -216,9 +216,16 @@
                 </table>
             </div>
         </section>
+        <script src="js/cargarCombo.jQuery.js"></script>
         <script src="js/jsHojaVida.jQuery.js"></script>
         <script>
             $(document).on('ready', function() {
+                var departamentos = ['#iddeptonacimiento', '#iddeptoexpedicion', '#iddeptoresidencia'];
+                $(document).cargarCombo('STiposDeDocumento', 'idtipodedocumento', 'tipodedocumento', ['#idtipodedocumento']);
+                $(document).cargarCombo('SGenero', 'idgenero', 'genero', ['#idgenero']);
+                $(document).cargarCombo('SDepartamentos', 'iddepartamento', 'nombre', departamentos);
+                $(document).cargarCombo('SEstadocivil', 'idestadocivil', 'nombre', ['#idestadocivil']);
+
                 var nombres = ['ID', 'idtipodedocumento', 'numerodocumento', 'primerapellido', 'segundoapellido', 'nombres', 'idgenero', 'libretamilitar', 'distritolm', 'lugarnacimiento', 'lugarexpediciond', 'lugarresidencia', 'fechanacimiento', 'fechaexpediciond', 'idestadocivil', 'disponibilidadviaje', 'direccion', 'telefono', 'correo', 'foto'];
                 var campos = ['#idunico', '#idtipodedocumento', '#numerodocumento', '#primerapellido', '#segundoapellido', '#nombres', '#idgenero', '#libretamilitar', '#distritolm', '#lugarnacimiento', '#lugarexpediciond', '#lugarresidencia', '#fechanacimiento', '#fechaexpediciond', '#idestadocivil', '#disponibilidadviaje', '#direccion', '#telefono', '#correo', '#foto'];
                 $('#frmFormulario').eventoAjax('#btnGuardar', '#btnCancelar', '#unDiv', '#frmLista', '#msgLista', '#cuerpoLista', nombres, campos);

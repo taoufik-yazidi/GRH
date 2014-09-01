@@ -14,7 +14,7 @@ public class NMunicipios extends NGeneralidades {
     private final String MIOBJETO = "PARMUN";
     private static final Logger LOG = Logger.getLogger(NMunicipios.class.getName());
 
-    public int ejecutarSQL(short ta, ODepartamentos obj, OCredencial cre) throws ExcepcionGeneral {
+    public int ejecutarSQL(byte ta, ODepartamentos obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
         if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
@@ -57,10 +57,10 @@ public class NMunicipios extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<ODepartamentos> consultar(short ta, short tc, ODepartamentos obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<ODepartamentos> consultar(short tc, ODepartamentos obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
-        if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
+        if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 conectar("select * from fn_municipios_sel(?,?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);
@@ -94,7 +94,7 @@ public class NMunicipios extends NGeneralidades {
                     }
                 }
             } catch (SQLException sql) {
-                LOG.log(Level.INFO, "Error en NMunicipios consultar: " + sql.getMessage());
+                LOG.log(Level.INFO, "Error en NMunicipios consultar: %s", sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();

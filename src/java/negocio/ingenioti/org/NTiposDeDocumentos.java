@@ -17,7 +17,7 @@ public class NTiposDeDocumentos extends NGeneralidades {
     public NTiposDeDocumentos() {
     }
 
-    public Short ejecutarSQL(short ta, OTiposDeDocumento td, OCredencial cre) throws ExcepcionGeneral {
+    public Short ejecutarSQL(byte ta, OTiposDeDocumento td, OCredencial cre) throws ExcepcionGeneral {
         Short respuesta = 0;
         if(NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)){
             try {
@@ -60,10 +60,10 @@ public class NTiposDeDocumentos extends NGeneralidades {
     }
 
     
-    public ArrayList<OTiposDeDocumento> consultar(short ta, short tc, OTiposDeDocumento td, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<OTiposDeDocumento> consultar(short tc, OTiposDeDocumento td, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<OTiposDeDocumento> lista = new ArrayList<OTiposDeDocumento>();
-        if(NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)){
+        if(NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)){
             try{
                 conectar("select * from fn_tiposdedocumento_sel(?,?,?,?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);

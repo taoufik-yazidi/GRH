@@ -17,18 +17,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import objetos.ingenioti.org.OCredencial;
 import negocio.ingenioti.org.NGenero;
+import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.OGenero;
 
-/**
- *
- * @author Alexys
- */
-@WebServlet(name = "SGenero", urlPatterns = {"/SGenero"})
-public class SGenero extends HttpServlet {
-    
-    private static final Logger LOG = Logger.getLogger(SGenero.class.getName());
+@WebServlet(name = "SGeneroSel", urlPatterns = {"/SGeneroSel"})
+public class SGeneroSel extends HttpServlet {
+    private static final Logger LOG = Logger.getLogger(SGeneroSel.class.getName());
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -45,28 +40,23 @@ public class SGenero extends HttpServlet {
         response.setContentType("application/json");
         HttpSession sesion = request.getSession();
         if (SUtilidades.autenticado(sesion)) {
-            // Elementos de respuesta
-            String mensaje = "";
-            short tipoMensaje;
-            JsonObject modelo;
+            String mensajeLista;
+            byte tipoMensajeLista;
+            JsonObject jsLista;
             JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String accion = request.getParameter("accion");
-            byte sAccion;
+            String tipoConsulta = request.getParameter("tipoConsulta");
+            byte sTipoConsulta = 0;
             try {
-                sAccion = Byte.parseByte(accion);
-            } catch (NumberFormatException nfe) {
-                sAccion = 0;
-            }
-
+                sTipoConsulta = Byte.parseByte(tipoConsulta);
+            } catch (NumberFormatException nfe) {}
+            
             String sidgenero = request.getParameter("idgenero");
-            String ssigla = request.getParameter("sigla");
-            String sgenero = request.getParameter("genero");
             short iidgenero = 0;
-            if (sAccion != SUtilidades.ACCIONINSERTAR) {
+            if (sTipoConsulta == SUtilidades.CONSULTA_ID) {
                 try {
                     iidgenero = Short.parseShort(sidgenero);
                 } catch (NumberFormatException nfe) {
@@ -75,52 +65,74 @@ public class SGenero extends HttpServlet {
             }
 
             NGenero nGenero = new NGenero();
-            OGenero oGenero = new OGenero(iidgenero, ssigla, sgenero);
+            OGenero oGenero = new OGenero(iidgenero, null, null);
 
-            if (sAccion == SUtilidades.ACCIONINSERTAR
-                    || sAccion == SUtilidades.ACCIONBORRAR
-                    || sAccion == SUtilidades.ACCIONACTUALIZAR) {
-                // Validación de campos vacios
-                if (sAccion != SUtilidades.ACCIONBORRAR && (ssigla == null || ssigla.length() == 0 || sgenero == null || sgenero.length() == 0)) {
-                    tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA;
-                    mensaje = "Todos los campos son obligatorios";
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                } else {
-                    int respuesta = 0;
-                    try {
-                        respuesta = nGenero.ejecutarSQL(sAccion, oGenero, credencial);
-                        tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA; // Inicia en warning porque es la mayor cantidad de opciones
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_UK) {
-                            mensaje = "Error de llave duplicada";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR_FK) {
-                            mensaje = "Error de violación de llave foranea. Problema de dependencias.";
-                        }
-                        if (respuesta == SUtilidades.MSG_BD_ERROR) {
-                            mensaje = "No se encontró el registro en la BD, o error desconocido de BD.";
-                        }
-                        if (respuesta > 0) {
-                            mensaje = "Proceso realizado correctamente - ID: " + respuesta;
-                            tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
-                        }
-                    } catch (ExcepcionGeneral eg) {
-                        tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
-                        mensaje = eg.getMessage();
-                    }
-                    modelo = Json.createObjectBuilder()
-                            .add("tipoMensaje", tipoMensaje)
-                            .add("mensaje", mensaje)
-                            .build();
-                    jsEscritor.writeObject(modelo);
-                }
+            // Preparación de la lista de objetos a retornar
+            ArrayList<OGenero> lista = new ArrayList<OGenero>();
+            int totalPaginas;
+            int totalRegistros;
+
+            // Variables de paginación
+            String pagina = request.getParameter("pag");
+            String limite = request.getParameter("lim");
+            String columnaOrden = request.getParameter("cor");
+            String tipoOrden = request.getParameter("tor");
+
+            if (tipoOrden == null || tipoOrden.length() == 0) {
+                tipoOrden = "asc";
             }
+
+            int iPagina, iLimite, iColumnaOrden;
+            try {
+                iPagina = Integer.parseInt(pagina);
+                iLimite = Integer.parseInt(limite);
+                iColumnaOrden = Integer.parseInt(columnaOrden);
+            } catch (NumberFormatException nfe) {
+                iPagina = 1;
+                iLimite = 5;
+                iColumnaOrden = 1;
+            }
+            totalRegistros = nGenero.getCantidadRegistros("genero");
+            if (totalRegistros > 0) {
+                totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
+            } else {
+                totalPaginas = 0;
+            }
+            if (iPagina > totalPaginas) {
+                iPagina = totalPaginas;
+            }
+
+            try {
+                lista = nGenero.consultar(sTipoConsulta, oGenero, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
+                tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
+                mensajeLista = "Cargue de consulta realizado correctamente.";
+            } catch (ExcepcionGeneral eg) {
+                tipoMensajeLista = SUtilidades.TIPO_MSG_ERROR;
+                mensajeLista = eg.getMessage();
+            }
+
+            jsArray = Json.createArrayBuilder();
+            for (OGenero obj : lista) {
+                JsonObject temp = Json.createObjectBuilder()
+                        .add("idgenero", obj.getIdgenero())
+                        .add("sigla", obj.getSigla())
+                        .add("genero", obj.getGenero())
+                        .build();
+                jsArray.add(temp);
+            }
+            jsLista = Json.createObjectBuilder()
+                    .add("tipoMensajeLista", tipoMensajeLista)
+                    .add("mensajeLista", mensajeLista)
+                    .add("registros", totalRegistros)
+                    .add("paginas", totalPaginas)
+                    .add("lista", jsArray)
+                    .build();
+            jsEscritor.writeObject(jsLista);
+
             jsEscritor.close();
 
             String jsObjeto = sEscritor.toString();
+
             PrintWriter out = response.getWriter();
             try {
                 out.println(jsObjeto);
