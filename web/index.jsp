@@ -7,15 +7,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Herramientas para el control de información">
-        <meta name="author" content="Alexys Lozada">
-        <title>H.C.I. Herramientas para el control de información</title>
-        <script src="js/jquery-1.9.1.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <link rel="stylesheet" href="css/bootstrap.min.css" />
-        <link rel="stylesheet" href="css/estilo.css" />
+        <jsp:include flush="true" page="head.jsp">
+            <jsp:param name="pagina" value="Bienvenido" />
+        </jsp:include>
         <style>
             input[type="text"]{
                 text-transform: none;
@@ -36,14 +30,14 @@
                     <input class="input-block-level" type="text" autofocus autocomplete="off" id="txtUsr" name="txtUsr" placeholder="Digita tu usuario" />
                     <input class="input-block-level" type="password" autocomplete="off" id="txtPwd" name="txtPwd" placeholder="Clave" />
                     <input class="btn btn-large btn-primary" type="submit" name="btnEnviar" value="Ingresar"/>
-                    <% 
-                        if(request.getAttribute("mensaje")!=null){
-                    %>
-                        <div class="alert alert-error">
-                                <%= request.getAttribute("mensaje") %>
-                        </div>
                     <%
-                       }
+                        if (request.getAttribute("mensaje") != null) {
+                    %>
+                    <div class="alert alert-error">
+                        <%= request.getAttribute("mensaje")%>
+                    </div>
+                    <%
+                        }
                     %>
                 </form>
             </div>
@@ -51,21 +45,22 @@
         <section>
             <div id="estadoContexto" class="alert"></div>
         </section>
+        <jsp:include flush="true" page="scriptjs.jsp" />
         <script>
-            $(document).on('ready',cargaConfiguracion);
-            function cargaConfiguracion(){
+            $(document).on('ready', cargaConfiguracion);
+            function cargaConfiguracion() {
                 $.ajax({
                     url: 'SContexto',
                     type: 'post',
                     dataType: 'xml',
-                    success: function(informacion){
+                    success: function(informacion) {
                         var elTipo = 0;
                         var elMensaje = "";
-                        $(informacion).find('mensaje').each(function(){
+                        $(informacion).find('mensaje').each(function() {
                             elTipo = parseInt($(this).find('tipo').text());
                             elMensaje = $(this).find('info').text();
                         });
-                        switch(elTipo){
+                        switch (elTipo) {
                             case 0:
                                 $("#estadoContexto").addClass("alert-error");
                                 break;
@@ -78,7 +73,7 @@
                         }
                         $("#estadoContexto").html(elMensaje);
                     },
-                    error: function(jqXHR,estado,elerror){
+                    error: function(jqXHR, estado, elerror) {
                         $("#estadoContexto").addClass("alert-error");
                         $("#estadoContexto").html(elerror);
                         console.log(estado);

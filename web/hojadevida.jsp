@@ -216,6 +216,7 @@
                 </table>
             </div>
         </section>
+        <jsp:include flush="true" page="scriptjs.jsp" />
         <script src="js/cargarCombo.jQuery.js"></script>
         <script src="js/jsHojaVida.jQuery.js"></script>
         <script>

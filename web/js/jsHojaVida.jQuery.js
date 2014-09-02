@@ -41,11 +41,12 @@
             filtraMunicipios($(this).val(), '#idlugarresidencia');
         });
 
+/*
         var departamentos = ['#iddeptonacimiento', '#iddeptoexpedicion', '#iddeptoresidencia'];
         for (dep in departamentos) {
-           $(departamentos[dep]).trigger('change');
+           //$(departamentos[dep]).trigger('change');
         }
-
+*/
         // Para mostrar u ocultar el botón de subir archivo
         $('#preview').hover(
                 function() {

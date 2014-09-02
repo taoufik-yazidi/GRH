@@ -4,11 +4,11 @@
     Author     : Alexys
 --%>
 <%
-    String usuario="";
-    if(session.getAttribute("credencial")!=null){
+    String usuario = "";
+    if (session.getAttribute("credencial") != null) {
         objetos.ingenioti.org.OCredencial credencial = (objetos.ingenioti.org.OCredencial) session.getAttribute("credencial");
         usuario = credencial.getUsuario().getNombre();
-        if(usuario.length()<=0){
+        if (usuario.length() <= 0) {
             response.sendRedirect("index.jsp");
         }
     } else {
@@ -31,7 +31,7 @@
     </head>
     <body>
         <header>
-        <jsp:include flush="true" page="encabezado.jsp" />
+            <jsp:include flush="true" page="encabezado.jsp" />
         </header>
         <section>
             <div class="container">
@@ -44,15 +44,16 @@
                     <input class="input-block-level" autocomplete="off" type="password" id="txtConfirma" name="txtConfirma" placeholder="Confirmar Clave">
                     <input class="btn btn-large btn-primary" type="submit" name="btnCambiar" value="Cambiar Contraseña">
                 </form>
-                    
+
                 <p>
-                    <% 
-                        if(request.getAttribute("mensaje")!=null){
-                            out.println(request.getAttribute("mensaje"));  
+                    <%
+                        if (request.getAttribute("mensaje") != null) {
+                            out.println(request.getAttribute("mensaje"));
                         }
                     %>
                 </p>
             </div>
         </section>
+        <jsp:include flush="true" page="scriptjs.jsp" />
     </body>
 </html>

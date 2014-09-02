@@ -29,6 +29,10 @@ public class OHojadevida implements IObjetoHci {
     public OHojadevida() {
     }
 
+    public OHojadevida(int idhojadevida) {
+        this.idhojadevida = idhojadevida;
+    }
+
     public OHojadevida(int idhojadevida, OTiposDeDocumento tipodedocumento, String numerodocumento,
             String primerapellido, String segundoapellido, String nombres, OGenero genero,
             String libretamilitar, String distritolm, ODepartamentos lugarnacimiento,

@@ -4,13 +4,13 @@
     Author     : Alexys
 --%>
 <%
-    String usuario="";
-    if(session.getAttribute("credencial")!=null){
+    String usuario = "";
+    if (session.getAttribute("credencial") != null) {
         objetos.ingenioti.org.OCredencial credencial = (objetos.ingenioti.org.OCredencial) session.getAttribute("credencial");
         usuario = credencial.getUsuario().getNombre();
-        if(usuario.length()<=0){
+        if (usuario.length() <= 0) {
             response.sendRedirect("index.jsp");
-        } 
+        }
     } else {
         response.sendRedirect("index.jsp");
     }
@@ -19,15 +19,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Herramientas para el control de información">
-        <meta name="author" content="Alexys Lozada">
-        <title>H.C.I. Herramientas para el control de información</title>
-        <script src="js/jquery-1.9.1.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
-        <link rel="stylesheet" href="css/bootstrap.min.css" />
-        <link rel="stylesheet" href="css/estilo.css" />
+        <jsp:include flush="true" page="head.jsp">
+            <jsp:param name="pagina" value="H.C.I. Bienvenido" />
+        </jsp:include>
     </head>
     <body>
         <header>
@@ -41,13 +35,14 @@
                 <p>Inicie aquí su proyecto.</p>
                 <p><%=usuario%></p>
                 <p>
-                    <% 
-                        if(request.getAttribute("mensaje")!=null){
-                            out.println(request.getAttribute("mensaje"));  
+                    <%
+                        if (request.getAttribute("mensaje") != null) {
+                            out.println(request.getAttribute("mensaje"));
                         }
                     %>
                 </p>
             </div>
         </section>
+        <jsp:include flush="true" page="scriptjs.jsp" />
     </body>
 </html>

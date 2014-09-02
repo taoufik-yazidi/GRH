@@ -6,13 +6,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonWriter;
 import javax.servlet.ServletException;
@@ -25,10 +23,6 @@ import negocio.ingenioti.org.NHojadevida;
 import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.OHojadevida;
 
-/**
- *
- * @author Alexys
- */
 @WebServlet(name = "SHojadevida", urlPatterns = {"/SHojadevida"})
 public class SHojadevida extends HttpServlet {
 
@@ -53,28 +47,24 @@ public class SHojadevida extends HttpServlet {
             // Elementos de respuesta
             String mensaje = "";
             short tipoMensaje;
-            String mensajeLista;
-            short tipoMensajeLista;
             // Objetos Json de respuesta
-            JsonObject modelo, jsLista;
-            JsonArrayBuilder jsArray;
+            JsonObject modelo;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String accion = request.getParameter("accion");
-            byte sAccion;
 
+            String accion = request.getParameter("accion");
+            byte sAccion = 0;
             try {
                 sAccion = Byte.parseByte(accion);
             } catch (NumberFormatException nfe) {
-                sAccion = 0;
             }
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
             NHojadevida nHojadevida = new NHojadevida();
-            OHojadevida oHojadevida = new OHojadevida();
+            OHojadevida oHojadevida;
 
             // Para Insertar, Modificar o Borrar
             if (sAccion == SUtilidades.ACCIONINSERTAR
@@ -127,7 +117,7 @@ public class SHojadevida extends HttpServlet {
                         try {
                             iidhojadevida = Integer.parseInt(sidhojadevida);
                         } catch (NumberFormatException nfe) {
-                            LOG.log(Level.WARNING, "Error al convertir: idhojadevida en int en el servlet SHojadevida");
+                            SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idhojadevida %s", sidhojadevida);
                         }
                     }
                     
@@ -153,11 +143,11 @@ public class SHojadevida extends HttpServlet {
                             cfechaexpediciond.setTime(sdf.parse(sfechaexpediciond));
                             iidestadocivil = Short.parseShort(sidestadocivil);
                         } catch (NumberFormatException nfe) {
-                            LOG.log(Level.WARNING, "Error al convertir un tipo de dato en SHojadevida. %s",nfe.getMessage());
+                            SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir un tipo de dato. %s",nfe.getMessage());
                         } catch (ParseException pe){
-                            LOG.log(Level.WARNING, "Error al convertir un tipo de dato en SHojadevida. %s",pe.getMessage());
+                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir un tipo de dato. %s",pe.getMessage());
                         } catch (NullPointerException npe){
-                            LOG.log(Level.WARNING, "Error en un tipo de dato nulo en SHojadevida. %s",npe.getMessage());
+                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error en un tipo de dato nulo en SHojadevida. %s",npe.getMessage());
                         }
                     }
                     
@@ -198,113 +188,10 @@ public class SHojadevida extends HttpServlet {
                     jsEscritor.writeObject(modelo);
                 }
             }
-            
-            if (sAccion == SUtilidades.ACCIONCONSULTAR) {
-                String tipoConsulta = request.getParameter("tipoConsulta");
-                short sTipoConsulta;
-                try {
-                    sTipoConsulta = Short.parseShort(tipoConsulta);
-                } catch (NumberFormatException nfe) {
-                    sTipoConsulta = 0;
-                }
-
-                // Preparación de la lista de objetos a retornar
-                ArrayList<OHojadevida> lista = new ArrayList<OHojadevida>();
-                int totalPaginas = 0;
-                int totalRegistros = 0;
-
-                // Variables de paginación
-                String pagina = request.getParameter("pag");
-                String limite = request.getParameter("lim");
-                String columnaOrden = request.getParameter("cor");
-                String tipoOrden = request.getParameter("tor");
-
-                if (tipoOrden == null || tipoOrden.length() == 0) {
-                    tipoOrden = "asc";
-                }
-
-                int iPagina, iLimite, iColumnaOrden;
-                try {
-                    iPagina = Integer.parseInt(pagina);
-                    iLimite = Integer.parseInt(limite);
-                    iColumnaOrden = Integer.parseInt(columnaOrden);
-                } catch (NumberFormatException nfe) {
-                    iPagina = 1;
-                    iLimite = 5;
-                    iColumnaOrden = 1;
-                }
-
-                try {
-                    totalRegistros = nHojadevida.getCantidadRegistros("hojadevida");
-                    if (totalRegistros > 0) {
-                        totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
-                    } else {
-                        totalPaginas = 0;
-                    }
-                    if (iPagina > totalPaginas) {
-                        iPagina = totalPaginas;
-                    }
-                    lista = nHojadevida.consultar(sAccion, sTipoConsulta, oHojadevida, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
-                    tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
-                    mensajeLista = "Cargue de consulta realizado correctamente.";
-                } catch (ExcepcionGeneral eg) {
-                    tipoMensajeLista = SUtilidades.TIPO_MSG_ERROR;
-                    mensajeLista = eg.getMessage();
-                }
-
-                jsArray = Json.createArrayBuilder();
-                for (OHojadevida obj : lista) {
-                    JsonObject temp = Json.createObjectBuilder()
-                            .add("idhojadevida", obj.getIdhojadevida())
-                            .add("idtipodocumento", obj.getTipodedocumento().getIdtipodedocumento())
-                            .add("tipodedocumento", obj.getTipodedocumento().getTipodedocumento())
-                            .add("numerodocumento", obj.getNumerodocumento())
-                            .add("primerapellido", obj.getPrimerapellido())
-                            .add("segundoapellido", obj.getSegundoapellido())
-                            .add("nombres", obj.getNombres())
-                            .add("idgenero", obj.getGenero().getIdgenero())
-                            .add("genero", obj.getGenero().getGenero())
-                            .add("libretamilitar", obj.getLibretamilitar())
-                            .add("distritolm", obj.getDistritolm())
-                            .add("idnacimiento", obj.getLugarnacimiento().getMunicipio().getIdmunicipio())
-                            .add("iddeptonacimiento", obj.getLugarnacimiento().getIddepartamento())
-                            .add("deptonacimiento", obj.getLugarnacimiento().getNombre())
-                            .add("lugarnacimiento", obj.getLugarnacimiento().getMunicipio().getNombre())
-                            .add("idlugarexpedicion", obj.getLugarexpedicion().getMunicipio().getIdmunicipio())
-                            .add("iddeptoexpedicion", obj.getLugarexpedicion().getIddepartamento())
-                            .add("deptoexpedicion", obj.getLugarexpedicion().getNombre())
-                            .add("lugarexpedicion", obj.getLugarexpedicion().getMunicipio().getNombre())
-                            .add("idlugarresidencia", obj.getLugarresidencia().getMunicipio().getIdmunicipio())
-                            .add("iddeptoresidencia", obj.getLugarresidencia().getIddepartamento())
-                            .add("deptoresidencia", obj.getLugarresidencia().getNombre())
-                            .add("lugarresidencia", obj.getLugarresidencia().getMunicipio().getNombre())
-                            .add("fechanacimiento", obj.getFechanacimientoSDF())
-                            .add("fechaexpediciond", obj.getFechaexpedicionSDF())
-                            .add("idestadocivil", obj.getEstadocivil().getIdestadocivil())
-                            .add("estadocivil", obj.getEstadocivil().getNombre())
-                            .add("disponibilidadviaje", obj.isDisponibilidadviaje())
-                            .add("direccion", obj.getDireccion())
-                            .add("telefono", obj.getTelefono())
-                            .add("correo", obj.getCorreo())
-                            .add("foto", obj.getFoto())
-                            .build();
-                    jsArray.add(temp);
-                }
-                jsLista = Json.createObjectBuilder()
-                        .add("tipoMensajeLista", tipoMensajeLista)
-                        .add("mensajeLista", mensajeLista)
-                        .add("registros", totalRegistros)
-                        .add("paginas", totalPaginas)
-                        .add("lista", jsArray)
-                        .build();
-                jsEscritor.writeObject(jsLista);
-            }
             jsEscritor.close();
-
-            String jsObjeto = sEscritor.toString();
             PrintWriter out = response.getWriter();
             try {
-                out.println(jsObjeto);
+                out.println(sEscritor.toString());
             } finally {
                 out.close();
             }

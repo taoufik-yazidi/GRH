@@ -3,6 +3,8 @@ package negocio.ingenioti.org;
 import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import objetos.ingenioti.org.OCredencial;
 import objetos.ingenioti.org.ODepartamentos;
 import objetos.ingenioti.org.OEstadoCivil;
@@ -14,6 +16,7 @@ import objetos.ingenioti.org.OTiposDeDocumento;
 public class NHojadevida extends NGeneralidades {
 
     private final String MIOBJETO = "NEGHDV";
+    private static final Logger LOG = Logger.getLogger(NHojadevida.class.getName());
 
     public int ejecutarSQL(byte ta, OHojadevida obj, OCredencial cre) throws ExcepcionGeneral {
         int respuesta = 0;
@@ -77,7 +80,7 @@ public class NHojadevida extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                System.err.println("Error en NHojadevida insertar: " + sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida %s", sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();
@@ -90,12 +93,12 @@ public class NHojadevida extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<OHojadevida> consultar(byte ta, short tc, OHojadevida obj, 
+    public ArrayList<OHojadevida> consultar(short tc, OHojadevida obj, 
                                             OCredencial cre, int pagina, int limite, 
                                             int columnaOrden, String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<OHojadevida> lista = new ArrayList<OHojadevida>();
-        if (NUtilidades.tienePermiso(ta, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
+        if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
             try {
                 conectar("select * from fn_hojadevida_sel(?,?,?,?,?,?)");
                 sentenciaProcedimiento.setShort(1, tc);
@@ -139,7 +142,7 @@ public class NHojadevida extends NGeneralidades {
                     lista.add(temp);
                 }
             } catch (SQLException sql) {
-                System.err.println("Error en NHojadevida consultar: " + sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida consultar: %s", sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();

@@ -100,7 +100,7 @@
                 </table>
             </div>
         </section>
-        <script src="js/eventoAjax.jQuery.js"></script>
+        <jsp:include flush="true" page="scriptjs.jsp" />
         <script src="js/cargarCombo.jQuery.js"></script>
         <script>
             $(document).on('ready', function() {

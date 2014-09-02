@@ -93,6 +93,7 @@
                 </table>
             </div>
         </section>
+        <jsp:include flush="true" page="scriptjs.jsp" />
         <script>
             $(document).on('ready', function() {
                 var nombres = ['idestadocivil', 'abreviatura', 'nombre'];
