@@ -117,7 +117,7 @@ public class SHojadevida extends HttpServlet {
                         try {
                             iidhojadevida = Integer.parseInt(sidhojadevida);
                         } catch (NumberFormatException nfe) {
-                            SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idhojadevida %s", sidhojadevida);
+                            SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idhojadevida "+sidhojadevida);
                         }
                     }
                     
@@ -143,11 +143,11 @@ public class SHojadevida extends HttpServlet {
                             cfechaexpediciond.setTime(sdf.parse(sfechaexpediciond));
                             iidestadocivil = Short.parseShort(sidestadocivil);
                         } catch (NumberFormatException nfe) {
-                            SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir un tipo de dato. %s",nfe.getMessage());
+                            SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir un tipo de dato. "+nfe.getMessage());
                         } catch (ParseException pe){
-                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir un tipo de dato. %s",pe.getMessage());
+                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir un tipo de dato. "+pe.getMessage());
                         } catch (NullPointerException npe){
-                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error en un tipo de dato nulo en SHojadevida. %s",npe.getMessage());
+                            SUtilidades.generaLogServer(LOG, Level.WARNING, "Error en un tipo de dato nulo en SHojadevida. "+npe.getMessage());
                         }
                     }
                     

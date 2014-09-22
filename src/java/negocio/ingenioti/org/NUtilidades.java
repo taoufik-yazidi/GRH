@@ -7,22 +7,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 
-
 /**
- * NUtilidades.java
- * Contiene las utilidades generales de la aplicacion
- * Create 2013/02/25
- * 
+ * NUtilidades.java Contiene las utilidades generales de la aplicacion Create
+ * 2013/02/25
+ *
  * @author Alexys
  * @version 1.0
  */
 public final class NUtilidades {
+
     private static PGPoolingDataSource piscina = null;
     private static ServletContext contextoApp;
     private static boolean creado = false;
-    
+
     private static String DIRECTORIO_IMAGENES;
-    
+
     public static final byte MSG_BD_ERROR = 0;
     public static final byte MSG_BD_ERROR_FK = -1;
     public static final byte MSG_BD_ERROR_UK = -2;
@@ -32,24 +31,28 @@ public final class NUtilidades {
     public static final byte ACCIONCONSULTAR = 4;
     public static final byte CONSULTA_TODOS = 0;
     public static final byte CONSULTA_ID = 1;
-    
-    public static boolean contextoCreado(){
+    public final static byte TIPO_MSG_CORRECTO = 1;
+    public final static byte TIPO_MSG_INFORMATIVO = 2;
+    public final static byte TIPO_MSG_ADVERTENCIA = 3;
+    public final static byte TIPO_MSG_ERROR = 4;
+
+    public static boolean contextoCreado() {
         return creado;
     }
-    
-    public static void creaPiscina(ServletContext contexto){
-        if(!creado){
+
+    public static void creaPiscina(ServletContext contexto) {
+        if (!creado) {
             contextoApp = contexto;
             setPiscina();
             DIRECTORIO_IMAGENES = contextoApp.getInitParameter("directorioImagenes");
         }
     }
 
-    public static String getDirectorioImagenes(){
+    public static String getDirectorioImagenes() {
         return DIRECTORIO_IMAGENES;
     }
-    
-    private static void setPiscina(){
+
+    private static void setPiscina() {
         String servidor = contextoApp.getInitParameter("servidor");
         int puertobd = Integer.parseInt(contextoApp.getInitParameter("puertobd"));
         String basededa = contextoApp.getInitParameter("basededatos");
@@ -68,12 +71,12 @@ public final class NUtilidades {
         piscina.setMaxConnections(conexionesmaximas);
         creado = true;
     }
-    
-    public static Connection getConexion() throws SQLException{
+
+    public static Connection getConexion() throws SQLException {
         Connection conexion = null;
-        if(piscina==null){
+        if (piscina == null) {
             setPiscina();
-            if(piscina==null){
+            if (piscina == null) {
                 System.err.println("Error en NUtilidades.java No fue posible cargar la piscina de conexiones");
             } else {
                 conexion = piscina.getConnection();
@@ -83,31 +86,54 @@ public final class NUtilidades {
         }
         return conexion;
     }
-    
-    public static boolean tienePermiso(byte tipoDeAccion, Short perfil, String objeto){
+
+    public static boolean tienePermiso(byte tipoDeAccion, Short perfil, String objeto) {
         NAutenticacion autenticacion = new NAutenticacion();
         return autenticacion.tienePermiso(tipoDeAccion, perfil, objeto);
     }
-    
-    private static boolean isLogServerActivo(){
-        if(creado){
-            if(contextoApp.getInitParameter("activar_log_server").equals("1")){
+
+    private static boolean isLogServerActivo() {
+        if (creado) {
+            if (contextoApp.getInitParameter("activar_log_server").equals("1")) {
                 return true;
             }
         }
         return false;
     }
-    
+
     /**
-     * Método generaLogServer permite generar el log del servidor si está configurado en el web.xml
+     * Método generaLogServer permite generar el log del servidor si está
+     * configurado en el web.xml
+     *
      * @param logger
      * @param level
      * @param mensaje Es el mensaje enviado que se escribe en el servlet
-     * @param msgexcepcion  Es el mensaje de excepción generado por el catch
      */
-    public static void generaLogServer(Logger logger, Level level, String mensaje, Object msgexcepcion){
-        if(isLogServerActivo()){
-            logger.log(level, mensaje, msgexcepcion);
+    public static void generaLogServer(Logger logger, Level level, String mensaje) {
+        if (isLogServerActivo()) {
+            logger.log(level, mensaje);
         }
+    }
+
+    public static String generaJson(byte tipo, String mensaje) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"tipoMensaje\":").append(tipo).append(",");
+        sb.append("\"mensaje\":\"").append(mensaje).append("\"");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    public static String generaJson(
+            byte tipo, String mensaje, int registros, int paginas, String lista) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"tipoMensaje\":").append(tipo).append(",");
+        sb.append("\"mensaje\":\"").append(mensaje).append("\",");
+        sb.append("\"registros\":").append(registros).append(",");
+        sb.append("\"paginas\":").append(paginas).append(",");
+        sb.append("\"lista\":[").append(lista).append("]");
+        sb.append("}");
+        return sb.toString();
     }
 }

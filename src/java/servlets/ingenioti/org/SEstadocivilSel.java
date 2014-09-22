@@ -82,7 +82,7 @@ public class SEstadocivilSel extends HttpServlet {
                 try {
                     iidestadocivil = Short.parseShort(sidestadocivil);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: idestadocivil en Short  en el servlet SEstadocivil", "");
+                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: idestadocivil en Short  en el servlet SEstadocivil");
                 }
             }
             NEstadocivil nEstadocivil = new NEstadocivil();

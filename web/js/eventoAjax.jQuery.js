@@ -20,7 +20,7 @@
                 dataType: 'json',
                 success: function(respuesta) {
                     var miHtml = '<div class="alert alert-';
-                    switch (respuesta['tipoMensajeLista']) {
+                    switch (respuesta['tipoMensaje']) {
                         case 0:
                             miHtml += "danger";
                             break;
@@ -37,7 +37,7 @@
                     }
                     miHtml += '">';
                     miHtml += '<span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;';
-                    miHtml += respuesta['mensajeLista'];
+                    miHtml += respuesta['mensaje'];
                     miHtml += '</div>';
                     $(msgLista).html(miHtml);
                     var objetos = respuesta['lista'];

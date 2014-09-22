@@ -73,7 +73,7 @@ public class SMunicipios extends HttpServlet {
                 try {
                     iidmunicipio = Short.parseShort(sidmunicipio);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idmunicipio en Short: %s", sidmunicipio);
+                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idmunicipio en Short: "+sidmunicipio);
                 }
             }
             // Se obtienen los campos enviados por la vista
@@ -84,7 +84,7 @@ public class SMunicipios extends HttpServlet {
             try {
                 iiddepartamento = Short.parseShort(siddepartamento);
             } catch (NumberFormatException nfe) {
-                SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir: iddepartamento en Short %s", siddepartamento);
+                SUtilidades.generaLogServer(LOG,Level.WARNING, "Error al convertir: iddepartamento en Short "+siddepartamento);
             }
             
             // Para realizar cualquier accion: insertar, modificar o borrar

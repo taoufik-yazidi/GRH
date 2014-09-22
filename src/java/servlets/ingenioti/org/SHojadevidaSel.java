@@ -66,7 +66,7 @@ public class SHojadevidaSel extends HttpServlet {
                 try {
                     iidhojadevida = Integer.parseInt(sidhojadevida);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idhojadevida %s", sidhojadevida);
+                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idhojadevida "+sidhojadevida);
                 }
             }
 

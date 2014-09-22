@@ -64,7 +64,7 @@ public class SContexto extends HttpServlet {
                     mensaje = "No hubo resultados al traer la fecha del servidor de BD";
                 }
             } catch (SQLException sqle){
-                SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al obtener la conexion en SContexto.java: %s", sqle.getMessage());
+                SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al obtener la conexion en SContexto.java: "+sqle.getMessage());
                 tipoMensaje = SUtilidades.TIPO_MSG_ERROR;
                 mensaje = "Error al obtener la conexion en SContexto.java: "+sqle.getMessage();
             } finally {

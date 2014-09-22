@@ -4,7 +4,6 @@ import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
@@ -44,7 +43,6 @@ public class SEstadocivil extends HttpServlet {
             String mensaje = "";
             short tipoMensaje;
             JsonObject modelo;
-            JsonArrayBuilder jsArray;
             StringWriter sEscritor = new StringWriter();
             JsonWriter jsEscritor = Json.createWriter(sEscritor);
 
@@ -65,7 +63,7 @@ public class SEstadocivil extends HttpServlet {
             try {
                 iidestadocivil = Short.parseShort(sidestadocivil);
             } catch (NumberFormatException nfe) {
-                SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: idestadocivil en Short  en el servlet SEstadocivil", "");
+                SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: idestadocivil en Short  en el servlet SEstadocivil");
             }
             }
             // Para realizar cualquier accion: insertar, modificar o borrar

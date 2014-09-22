@@ -80,7 +80,7 @@ public class NHojadevida extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida %s", sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida "+sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();
@@ -142,7 +142,7 @@ public class NHojadevida extends NGeneralidades {
                     lista.add(temp);
                 }
             } catch (SQLException sql) {
-                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida consultar: %s", sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NHojadevida consultar: "+sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();

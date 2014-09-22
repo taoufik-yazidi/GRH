@@ -20,13 +20,19 @@ public class ODepartamentos implements IObjetoHci {
         this.municipio = new OMunicipios();
     }
 
+    // Crea un departamento solo con el id
+    public ODepartamentos(short iddepartamento) {
+        this.iddepartamento = iddepartamento;
+    }
+
+    
     /* Crea un departamento sin municipio */
-    public ODepartamentos(short iddepartamento, String codigo, String nombre){
-         this.iddepartamento = iddepartamento;
+    public ODepartamentos(short iddepartamento, String codigo, String nombre) {
+        this.iddepartamento = iddepartamento;
         this.codigo = codigo;
         this.nombre = nombre;
     }
-    
+
     /* Crea un departamento con una lista de municipios */
     public ODepartamentos(short iddepartamento, String codigo, String nombre, ArrayList<OMunicipios> municipios) {
         this.iddepartamento = iddepartamento;
@@ -43,13 +49,14 @@ public class ODepartamentos implements IObjetoHci {
         this.municipio = municipio;
     }
 
-    
     public short getIddepartamento() {
         return iddepartamento;
     }
 
     public void setIddepartamento(short iddepartamento) {
-        this.iddepartamento = iddepartamento;
+        if (iddepartamento >= 0) {
+            this.iddepartamento = iddepartamento;
+        }
     }
 
     public String getCodigo() {
@@ -76,26 +83,43 @@ public class ODepartamentos implements IObjetoHci {
         this.municipio = municipio;
     }
 
-    public void addMunicipio(OMunicipios municipio){
-        if(this.municipios == null){
+    public void addMunicipio(OMunicipios municipio) {
+        if (this.municipios == null) {
             this.municipios = new ArrayList<OMunicipios>();
         }
         this.municipios.add(municipio);
     }
-    
-    public ArrayList<OMunicipios> getMunicipios(){
+
+    public ArrayList<OMunicipios> getMunicipios() {
         return this.municipios;
     }
-    
-    public ArrayList<ODepartamentos> listaTipoTabla(){
+
+    public ArrayList<ODepartamentos> listaTipoTabla() {
         ArrayList<ODepartamentos> departamentos = new ArrayList<ODepartamentos>();
-        for(OMunicipios temp: this.municipios){
+        for (OMunicipios temp : this.municipios) {
             ODepartamentos departamento = new ODepartamentos(this.iddepartamento, this.codigo, this.nombre, temp);
             departamentos.add(departamento);
         }
         return departamentos;
     }
-    
+
+    public String toJson() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"iddepartamento\":").append(getIddepartamento()).append(",");
+        sb.append("\"codigo\":\"").append(getCodigo()).append("\",");
+        sb.append("\"nombre\":\"").append(getNombre()).append("\",");
+        sb.append("\"municipios\":[");
+        for(OMunicipios mun:municipios){
+            sb.append(mun.toJson());
+        }
+        sb.append("],");
+        sb.append("\"municipio\":");
+        sb.append(municipio.toJson());
+        sb.append("}");
+        return sb.toString();
+    }
+
     @Override
     public String getDescripcion() {
         return null;

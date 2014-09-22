@@ -27,7 +27,9 @@
             <div class="container">
                 <form action="SAutenticar" method="post" class="form-signin">
                     <h2 class="form-signin-heading">Autenticación</h2>
+                    <span class="glyphicon glyphicon-user"></span>
                     <input class="input-block-level" type="text" autofocus autocomplete="off" id="txtUsr" name="txtUsr" placeholder="Digita tu usuario" />
+                    <span class="glyphicon glyphicon-open"></span>
                     <input class="input-block-level" type="password" autocomplete="off" id="txtPwd" name="txtPwd" placeholder="Clave" />
                     <input class="btn btn-large btn-primary" type="submit" name="btnEnviar" value="Ingresar"/>
                     <%

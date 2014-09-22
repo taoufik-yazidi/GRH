@@ -23,13 +23,12 @@ public final class SUtilidades extends HttpServlet {
     protected static final byte MSG_BD_ERROR = NUtilidades.MSG_BD_ERROR;
     protected static final byte MSG_BD_ERROR_FK = NUtilidades.MSG_BD_ERROR_FK;
     protected static final byte MSG_BD_ERROR_UK = NUtilidades.MSG_BD_ERROR_UK;
-    protected static final byte CONSULTA_TODOS = 0;
-    protected static final byte CONSULTA_ID = 1;
-    
-    protected final static byte TIPO_MSG_CORRECTO = 1;
-    protected final static byte TIPO_MSG_INFORMATIVO = 2;
-    protected final static byte TIPO_MSG_ADVERTENCIA = 3;
-    protected final static byte TIPO_MSG_ERROR = 4;
+    protected static final byte CONSULTA_TODOS = NUtilidades.CONSULTA_TODOS;
+    protected static final byte CONSULTA_ID = NUtilidades.CONSULTA_ID;
+    protected final static byte TIPO_MSG_CORRECTO = NUtilidades.TIPO_MSG_CORRECTO;
+    protected final static byte TIPO_MSG_INFORMATIVO = NUtilidades.TIPO_MSG_INFORMATIVO;
+    protected final static byte TIPO_MSG_ADVERTENCIA = NUtilidades.TIPO_MSG_ADVERTENCIA;
+    protected final static byte TIPO_MSG_ERROR = NUtilidades.TIPO_MSG_ERROR;
    
     /**
      * Metodo irAPagina, utilizado para redireccionar una pagina
@@ -80,9 +79,17 @@ public final class SUtilidades extends HttpServlet {
      * @param logger
      * @param level
      * @param mensaje Es el mensaje enviado que se escribe en el servlet
-     * @param msgexcepcion  Es el mensaje de excepción generado por el catch
      */
-    protected static void generaLogServer(Logger logger, Level level, String mensaje, Object msgexcepcion){
-        NUtilidades.generaLogServer(logger,level,mensaje,msgexcepcion);
+    protected static void generaLogServer(Logger logger, Level level, String mensaje){
+        NUtilidades.generaLogServer(logger,level,mensaje);
+    }
+    
+    protected static String generaJson(byte tipo, String mensaje) {
+        return NUtilidades.generaJson(tipo, mensaje);
+    }
+    
+    protected static String generaJson(
+            byte tipo, String mensaje, int registros, int paginas, String lista) {
+        return NUtilidades.generaJson(tipo, mensaje, registros, paginas, lista);
     }
 }

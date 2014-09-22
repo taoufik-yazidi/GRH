@@ -3,14 +3,9 @@ package servlets.ingenioti.org;
 import excepciones.ingenioti.org.ExcepcionGeneral;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -42,13 +37,8 @@ public class SDepartamentosSel extends HttpServlet {
         HttpSession sesion = request.getSession();
 
         if (SUtilidades.autenticado(sesion)) {
-            String mensajeLista;
-            byte tipoMensajeLista;
-
-            JsonObject jsLista;
-            JsonArrayBuilder jsArray;
-            StringWriter sEscritor = new StringWriter();
-            JsonWriter jsEscritor = Json.createWriter(sEscritor);
+            String mensaje;
+            byte tipoMensaje;
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
             String tipoConsulta = request.getParameter("tipoConsulta");
@@ -63,7 +53,7 @@ public class SDepartamentosSel extends HttpServlet {
                 try {
                     iiddepartamento = Short.parseShort(siddepartamento);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: iddepartamento en Short: %s", siddepartamento);
+                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir: iddepartamento en Short: "+siddepartamento);
                 }
             }
 
@@ -89,14 +79,13 @@ public class SDepartamentosSel extends HttpServlet {
             }
 
             NDepartamentos nDepartamentos = new NDepartamentos();
-            ODepartamentos oDepartamentos = new ODepartamentos(iiddepartamento, null, null);
+            ODepartamentos oDepartamentos = new ODepartamentos(iiddepartamento);
 
             // Preparación de la lista de objetos a retornar
             ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
             int totalPaginas;
-            int totalRegistros;
-
-            totalRegistros = nDepartamentos.getCantidadRegistros("departamentos");
+            int totalRegistros = nDepartamentos.getCantidadRegistros("departamentos");
+            
             if (totalRegistros > 0) {
                 totalPaginas = (int) Math.ceil((double) totalRegistros / (double) iLimite);
             } else {
@@ -108,37 +97,28 @@ public class SDepartamentosSel extends HttpServlet {
 
             try {
                 lista = nDepartamentos.consultar(sTipoConsulta, oDepartamentos, credencial, iPagina, iLimite, iColumnaOrden, tipoOrden);
-                tipoMensajeLista = SUtilidades.TIPO_MSG_CORRECTO;
-                mensajeLista = "Cargue de consulta realizado correctamente.";
+                tipoMensaje = SUtilidades.TIPO_MSG_CORRECTO;
+                mensaje = "Cargue de consulta realizado correctamente.";
             } catch (ExcepcionGeneral eg) {
-                tipoMensajeLista = SUtilidades.TIPO_MSG_ADVERTENCIA;
-                mensajeLista = eg.getMessage();
+                tipoMensaje = SUtilidades.TIPO_MSG_ADVERTENCIA;
+                mensaje = eg.getMessage();
             }
 
-            jsArray = Json.createArrayBuilder();
+            // Se construye la lista
+            StringBuilder listaJson = new StringBuilder();
+            int i = 0;
             for (ODepartamentos obj : lista) {
-                JsonObject temp = Json.createObjectBuilder()
-                        .add("iddepartamento", obj.getIddepartamento())
-                        .add("codigo", obj.getCodigo())
-                        .add("nombre", obj.getNombre())
-                        .build();
-                jsArray.add(temp);
+                i++;
+                listaJson.append(obj.toJson());
+                if(i < lista.size()){
+                    listaJson.append(",");
+                }
             }
-            jsLista = Json.createObjectBuilder()
-                    .add("tipoMensajeLista", tipoMensajeLista)
-                    .add("mensajeLista", mensajeLista)
-                    .add("registros", totalRegistros)
-                    .add("paginas", totalPaginas)
-                    .add("lista", jsArray)
-                    .build();
-            jsEscritor.writeObject(jsLista);
-            jsEscritor.close();
 
-            String jsObjeto = sEscritor.toString();
+            String respuesta = SUtilidades.generaJson(tipoMensaje, mensaje, totalRegistros, totalPaginas, listaJson.toString());
             PrintWriter out = response.getWriter();
-
             try {
-                out.println(jsObjeto);
+                out.println(respuesta);
             } finally {
                 out.close();
             }

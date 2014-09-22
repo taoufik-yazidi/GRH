@@ -70,7 +70,7 @@ public class SGenero extends HttpServlet {
                 try {
                     iidgenero = Short.parseShort(sidgenero);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idgenero en Short %s", sidgenero);
+                    SUtilidades.generaLogServer(LOG, Level.SEVERE, "Error al convertir: idgenero en Short "+sidgenero);
                 }
             }
 

@@ -73,7 +73,7 @@ public class STiposDeDocumento extends HttpServlet {
                 try {
                     iidTipoDocumento = Short.parseShort(idTipoDocumento);
                 } catch (NumberFormatException nfe) {
-                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir idTipoDocumento %s", idTipoDocumento);
+                    SUtilidades.generaLogServer(LOG, Level.WARNING, "Error al convertir idTipoDocumento "+idTipoDocumento);
                 }
             }
 

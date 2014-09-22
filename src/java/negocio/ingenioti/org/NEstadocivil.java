@@ -41,7 +41,7 @@ public class NEstadocivil extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NEstadocivil insertar: %s", sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NEstadocivil "+sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();

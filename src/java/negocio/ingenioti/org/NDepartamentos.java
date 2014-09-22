@@ -41,7 +41,7 @@ public class NDepartamentos extends NGeneralidades {
                     respuesta = resultados.getInt(1);
                 }
             } catch (SQLException sql) {
-                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NDepartamentos insertar: %s", sql.getMessage());
+                NUtilidades.generaLogServer(LOG, Level.SEVERE, "Error en NDepartamentos "+sql.getMessage());
             } finally {
                 try {
                     cerrarConexion();
@@ -54,7 +54,14 @@ public class NDepartamentos extends NGeneralidades {
         return respuesta;
     }
 
-    public ArrayList<ODepartamentos> consultar(byte tc, ODepartamentos obj, OCredencial cre, int pagina, int limite, int columnaOrden, String tipoOrden)
+    public ArrayList<ODepartamentos> consultar(
+            byte tc,
+            ODepartamentos obj,
+            OCredencial cre,
+            int pagina,
+            int limite,
+            int columnaOrden,
+            String tipoOrden)
             throws ExcepcionGeneral {
         ArrayList<ODepartamentos> lista = new ArrayList<ODepartamentos>();
         if (NUtilidades.tienePermiso(NUtilidades.ACCIONCONSULTAR, cre.getUsuario().getPerfil().getIdperfil(), MIOBJETO)) {
