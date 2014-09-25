@@ -1,0 +1,29 @@
+<div class="row">
+        <form id="frmLista" class="form-horizontal" role="form" method="post">
+            <div class="col-sm-10 col-sm-offset-1 input-group input-group-sm">
+                <span class="input-group-addon">Página</span>
+                <input class="form-control" type="number" id="pag" name="pag" min="1" step="1" ng-model="grhCtrl.pag" required>
+                <span class="input-group-addon">de</span>
+                <span class="input-group-addon" id="totpag">{{grhCtrl.paginas}}</span>
+                <span class="input-group-addon">Cantidad</span>
+                <input type="number" class="form-control" id="lim" name="lim" min="10" max="100" step="10" ng-model="grhCtrl.lim" required>
+                <span class="input-group-addon">Orden:</span>
+                <select class="form-control" id="cor" name="cor" ng-model="grhCtrl.cor">
+                    <option value="1">ID</option>
+                    <option value="2">Código</option>
+                    <option value="3">Nombre</option>
+                </select>
+                <span class="input-group-addon">/</span>
+                <select class="form-control" id="tor" name="tor" ng-model="grhCtrl.tor">
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
+                </select>
+                <span class="input-group-addon" id="datosListaFiltrada">
+                    Mostrando {{grhCtrl.regInicial}} al {{grhCtrl.regFinal}} de {{grhCtrl.registros}}
+                </span>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="btnListar" ng-click="grhCtrl.listar();">Listar</button>
+                </span>
+            </div>
+        </form>
+</div>

@@ -1,0 +1,20 @@
+<div id="modalBaseGris" ng-show="grhCtrl.showConfirm">
+    <div id="modalVentana" class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Confirmación</h3>
+        </div>
+        <div class="panel-body">
+            <p>
+                Confirma que desea 
+                <span ng-show="grhCtrl.accion===2">Actualizar</span>
+                <span ng-show="grhCtrl.accion===3">Eliminar</span> 
+                este registro?
+            </p>
+            <div class="botonesConfirmacion">
+                <button class="btn btn-default" ng-click="grhCtrl.showConfirm=false" ng-show="grhCtrl.accion===2">Actualizar</button>
+                <button class="btn btn-default" ng-click="grhCtrl.processObject();" ng-show="grhCtrl.accion===3">Eliminar</button>
+                <button class="btn btn-default" ng-click="grhCtrl.cancelConfirm();">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>

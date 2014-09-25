@@ -41,13 +41,13 @@ public class SDepartamentosSel extends HttpServlet {
             byte tipoMensaje;
 
             OCredencial credencial = (OCredencial) sesion.getAttribute("credencial");
-            String tipoConsulta = request.getParameter("tipoConsulta");
+            String tipoConsulta = request.getParameter("tc");
             byte sTipoConsulta = 0;
             try {
                 sTipoConsulta = Byte.parseByte(tipoConsulta);
             } catch (NumberFormatException nfe) {}
 
-            String siddepartamento = request.getParameter("iddepartamento");
+            String siddepartamento = request.getParameter("id");
             short iiddepartamento = 0;
             if (sTipoConsulta == SUtilidades.CONSULTA_ID) {
                 try {

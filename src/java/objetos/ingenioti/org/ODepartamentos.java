@@ -20,7 +20,7 @@ public class ODepartamentos implements IObjetoHci {
         this.municipio = new OMunicipios();
     }
 
-    // Crea un departamento solo con el id
+    // Crea un departamento solo con el iddepartamento
     public ODepartamentos(short iddepartamento) {
         this.iddepartamento = iddepartamento;
     }
@@ -106,7 +106,7 @@ public class ODepartamentos implements IObjetoHci {
     public String toJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("\"iddepartamento\":").append(getIddepartamento()).append(",");
+        sb.append("\"id\":").append(getIddepartamento()).append(",");
         sb.append("\"codigo\":\"").append(getCodigo()).append("\",");
         sb.append("\"nombre\":\"").append(getNombre()).append("\",");
         sb.append("\"municipios\":[");

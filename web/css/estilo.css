@@ -25,7 +25,14 @@ input[type="text"]{
 /*** CLASES          ***/
 /***********************/
 .acciones{
-    max-width: 45px;
+    max-width: 55px;
+}
+.ancho-paginacion{
+    /*width: 100px;
+    max-width: 100px;*/
+}
+.botonesConfirmacion{
+    text-align: center;
 }
 .form-signin {
   max-width: 300px;
@@ -59,10 +66,9 @@ input[type="text"]{
 /*** DIVS          ***/
 /*********************/
 #modalBaseGris{
-    display: none;
     background-color: hsla(210, 0%, 25%, .7);
-    top: 0;
-    left: 0;
+    top: 0%;
+    left: 0%;
     height: 100%;
     width: 100%;
     position: fixed;
@@ -70,10 +76,9 @@ input[type="text"]{
 }
 #modalVentana{
     display: inline-block;
-    top: 50px;
-    left: 20%;
+    margin: 100px 25%;
     min-width: 50%;
-    position: fixed;
+    max-width: 50%;
 }
 
 /*********************/
