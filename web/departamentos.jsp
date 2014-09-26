@@ -19,7 +19,7 @@
         </jsp:include>
     </head>
     <body ng-app="grh" ng-controller="GRHController as grhCtrl">
-        <span ng-init="grhCtrl.servlet='SDepartamentos';grhCtrl.listar();"></span>
+        <span ng-init="grhCtrl.servlet='SDepartamentos'"></span>
         <header>
             <jsp:include flush="true" page="encabezado.jsp">
                 <jsp:param name="usuario" value="<%=usuario%>" />
@@ -80,7 +80,7 @@
             
         </section>
         <section>
-            <div class="alert" ng-class="{'alert-success':grhCtrl.tipoMensajeLista===1,'alert-warning':grhCtrl.tipoMensajeLista!=1}">{{grhCtrl.mensajeLista}}</div>
+            <div class="alert" ng-class="{'alert-success':grhCtrl.paginacion.tipoMensajeLista===1,'alert-warning':grhCtrl.paginacion.tipoMensajeLista!=1}">{{grhCtrl.paginacion.mensajeLista}}</div>
             
             <paginacion></paginacion>
             
@@ -91,7 +91,7 @@
                         <tr><th>ID</th><th>Código</th><th>Nombre</th><th class="acciones" colspan="2">Acciones</th></tr>
                     </thead>
                     <tbody id="cuerpoLista">
-                        <tr ng-repeat="departamento in grhCtrl.objetos">
+                        <tr ng-repeat="departamento in grhCtrl.paginacion.objetos">
                             <td>{{departamento.id}}</td>
                             <td>{{departamento.codigo}}</td>
                             <td>{{departamento.nombre}}</td>

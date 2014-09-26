@@ -5,8 +5,57 @@ var MODIFICAR = 2;
 var BORRAR = 3;
 (function () {
     var app = angular.module('grh', []);
+    
+    app.factory('PaginacionModel',function($http){
+        var servicio = {
+            servlet:"",
+            registros:0,
+            pag:1,
+            paginas:0,
+            lim:10,
+            cor:1,
+            tor:"asc",
+            regInicial:0,
+            regFinal:0,
+            tipoMensajeLista:"",
+            mensajeLista:"",
+            objetos:[],
+            listar: function(){
+                $http({                  
+                    method: 'POST',
+                    url: servicio.servlet,
+                    params: {tc: 0, "pag": servicio.pag, 
+                            "lim": servicio.lim, 
+                            "cor": servicio.cor, 
+                            "tor": servicio.tor},
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                })
+                .success(function (data) {
+                    servicio.tipoMensajeLista = data.tipoMensaje;
+                    if(servicio.tipoMensajeLista === 1){
+                        servicio.objetos = data.lista;
+                        servicio.registros = data.registros;
+                        servicio.paginas = data.paginas;
+                        if(servicio.pag > servicio.paginas) servicio.pag = servicio.paginas;
+                        servicio.regInicial = servicio.pag * servicio.lim - servicio.lim + 1;
+                        servicio.regFinal = servicio.pag * servicio.lim;
+                        if(servicio.regFinal > servicio.registros) servicio.regFinal = servicio.registros;
+                    };
+                    servicio.mensajeLista = data.mensaje;
+                })
+                .error(function (data, status, headers, config, statusText) {
+                    console.log("Entré a paila");
+                    console.log(data);
+                    console.log(status);
+                    console.log(headers);
+                    console.log(config);
+                    console.log(statusText);
+            });}
+        };
+        return servicio;
+    });
 
-    app.controller('GRHController', ['$http', function($http){
+    app.controller('GRHController', function($http,PaginacionModel){
         
         var grhCtrl = this;
         grhCtrl.object = {};
@@ -16,49 +65,15 @@ var BORRAR = 3;
         grhCtrl.mensaje = "";
         grhCtrl.tipoMensajeLista = NINGUNA;
         grhCtrl.mensajeLista = "";
-        // Paginación
-        grhCtrl.registros = 0;
-        grhCtrl.pag = 1;
-        grhCtrl.paginas = 0;
-        grhCtrl.lim = 10;
-        grhCtrl.cor = 1;
-        grhCtrl.tor = "asc";
-        grhCtrl.regInicial = 0;
-        grhCtrl.regFinal = 0;
         
         grhCtrl.showConfirm = false;
         grhCtrl.confirmacion = false;
         grhCtrl.accion = NINGUNA;
         grhCtrl.servlet = '';
+        grhCtrl.paginacion = PaginacionModel;
         
         grhCtrl.listar = function() {
-            $http({
-                method: 'POST',
-                url: grhCtrl.servlet+'Sel',
-                params: {tc: 0, pag: grhCtrl.pag, lim: grhCtrl.lim, cor: grhCtrl.cor, tor: grhCtrl.tor},
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-            })
-            .success(function (data) {
-                grhCtrl.tipoMensajeLista = data.tipoMensaje;
-                if(grhCtrl.tipoMensajeLista === 1){
-                    grhCtrl.objetos = data.lista;
-                    grhCtrl.registros = data.registros;
-                    grhCtrl.paginas = data.paginas;
-                    if(grhCtrl.pag > grhCtrl.paginas) grhCtrl.pag = grhCtrl.paginas;
-                    grhCtrl.regInicial = grhCtrl.pag * grhCtrl.lim - grhCtrl.lim + 1;
-                    grhCtrl.regFinal = grhCtrl.pag * grhCtrl.lim;
-                    if(grhCtrl.regFinal > grhCtrl.registros) grhCtrl.regFinal = grhCtrl.registros;
-                };
-                grhCtrl.mensajeLista = data.mensaje;
-            })
-            .error(function (data, status, headers, config, statusText) {
-                console.log("Entré a paila");
-                console.log(data);
-                console.log(status);
-                console.log(headers);
-                console.log(config);
-                console.log(statusText);
-            });
+            PaginacionModel.listar();
         };
         
         grhCtrl.processObject = function(){
@@ -112,8 +127,15 @@ var BORRAR = 3;
             grhCtrl.accion = NINGUNA;
             grhCtrl.object = {};
         };
-    }]);
+    });
 
+    app.controller('PaginacionController', function(PaginacionModel){
+        var pagCtrl = this;
+        pagCtrl.paginacion = PaginacionModel;
+        pagCtrl.listar = function(){
+            PaginacionModel.listar();
+        };
+    });
     app.directive('confirmacion',function(){
         return {
             restrict:'E',
