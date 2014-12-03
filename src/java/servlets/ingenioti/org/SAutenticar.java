@@ -26,7 +26,7 @@ public class SAutenticar extends HttpServlet {
             throws ServletException, IOException {
 
         response.setContentType("text/html;charset=UTF-8");
-        HttpSession sesion = request.getSession(true);
+        HttpSession sesion = request.getSession();
 
         String mensaje;
         String codigo = request.getParameter("txtUsr");
